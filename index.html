@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hemellichamen - Met Geheugen</title>
+    <title>Hemelplanner</title>
 
     <style>
         /* BASIS OPMAAK */
@@ -68,7 +68,7 @@
             position: absolute; transform: translateY(-52vmin); 
         }
 
-        /* HET MENU */
+        /* HET MENU (DYNAMISCH) */
         #draggable-menu {
             position: absolute; top: 40px; left: 40px;
             display: flex; gap: 15px; padding: 10px 15px;
@@ -142,9 +142,9 @@
     </div>
 
     <div id="draggable-menu">
-        <div class="menu-item">
+        <div id="add-btn" class="menu-item">
             <span>&#43;</span>
-            <div class="expandable expand-down">
+            <div id="expand-box" class="expandable expand-down">
                 <div class="expandable-content">
                     <div class="sub-icon" title="Alarm" onclick="spawnIcon('⏰')">⏰</div>
                     <div class="sub-icon" title="Gebed" onclick="spawnIcon('🕌')">🕌</div>
@@ -162,7 +162,7 @@
                 </div>
             </div>
         </div>
-        <div class="menu-item" onclick="window.print()"><span>&#128424;</span></div>
+        <div id="print-btn" class="menu-item" onclick="window.print()"><span>&#128424;</span></div>
     </div>
 
     <script>
@@ -170,20 +170,38 @@
         let startX, startY, elemStartX, elemStartY;
         
         const menu = document.getElementById("draggable-menu");
+        const addBtn = document.getElementById("add-btn");
+        const printBtn = document.getElementById("print-btn");
+        const expandBox = document.getElementById("expand-box");
         const universe = document.getElementById("universe");
         const ticksContainer = document.getElementById("ticks-container");
         const arrowsContainer = document.getElementById("arrows-container");
         const moonElement = document.getElementById("moon-phase");
 
-        // --- GEHEUGEN FUNCTIES ---
+        // --- DINAMISCHE MENU LOGICA ---
+        function updateMenuOrientation(x, y) {
+            // 1. Horizontale logica (Plus links of rechts)
+            if (x < window.innerWidth / 2) {
+                // Linkerkant van scherm: Plus RECHTS van Print
+                menu.style.flexDirection = "row-reverse";
+            } else {
+                // Rechterkant van scherm: Plus LINKS van Print
+                menu.style.flexDirection = "row";
+            }
+
+            // 2. Verticale logica (Uitklappen naar boven of onder)
+            if (y > window.innerHeight / 2) {
+                expandBox.classList.replace("expand-down", "expand-up");
+            } else {
+                expandBox.classList.replace("expand-up", "expand-down");
+            }
+        }
+
+        // --- GEHEUGEN ---
         function saveState() {
             const icons = [];
             document.querySelectorAll('.dropped-icon').forEach(icon => {
-                icons.push({
-                    text: icon.innerText,
-                    left: icon.style.left,
-                    top: icon.style.top
-                });
+                icons.push({ text: icon.innerText, left: icon.style.left, top: icon.style.top });
             });
             localStorage.setItem('universeIcons', JSON.stringify(icons));
         }
@@ -191,8 +209,7 @@
         function loadState() {
             const saved = localStorage.getItem('universeIcons');
             if (saved) {
-                const icons = JSON.parse(saved);
-                icons.forEach(data => {
+                JSON.parse(saved).forEach(data => {
                     const newDiv = createIconElement(data.text);
                     newDiv.style.left = data.left;
                     newDiv.style.top = data.top;
@@ -210,8 +227,7 @@
             const clientX = e.type.startsWith("touch") ? e.touches[0].clientX : e.clientX;
             const clientY = e.type.startsWith("touch") ? e.touches[0].clientY : e.clientY;
             
-            startX = clientX;
-            startY = clientY;
+            startX = clientX; startY = clientY;
             const rect = activeElement.getBoundingClientRect();
             const containerRect = universe.getBoundingClientRect();
 
@@ -236,8 +252,11 @@
             const deltaY = clientY - startY;
 
             if (activeElement === menu) {
-                activeElement.style.left = (elemStartX + deltaX) + "px";
-                activeElement.style.top = (elemStartY + deltaY) + "px";
+                const newX = elemStartX + deltaX;
+                const newY = elemStartY + deltaY;
+                activeElement.style.left = newX + "px";
+                activeElement.style.top = newY + "px";
+                updateMenuOrientation(newX, newY);
             } else {
                 const containerRect = universe.getBoundingClientRect();
                 activeElement.style.left = (elemStartX + (deltaX / containerRect.width) * 100) + "%";
@@ -248,8 +267,7 @@
         function stopDragging() { 
             if (activeElement) { 
                 if (activeElement.classList.contains('dropped-icon')) saveState();
-                activeElement.style.cursor = "grab"; 
-                activeElement = null; 
+                activeElement.style.cursor = "grab"; activeElement = null; 
             } 
         }
 
@@ -265,12 +283,7 @@
             const newDiv = document.createElement('div');
             newDiv.className = 'dropped-icon';
             newDiv.innerText = text;
-            
-            newDiv.addEventListener('dblclick', function() { 
-                this.remove(); 
-                saveState();
-            });
-            
+            newDiv.addEventListener('dblclick', function() { this.remove(); saveState(); });
             let lastTap = 0;
             newDiv.addEventListener('touchstart', function(e) {
                 let now = new Date().getTime();
@@ -282,8 +295,7 @@
 
         function spawnIcon(text) {
             const newDiv = createIconElement(text);
-            newDiv.style.left = "50%"; 
-            newDiv.style.top = "50%";
+            newDiv.style.left = "50%"; newDiv.style.top = "50%";
             universe.appendChild(newDiv);
             saveState();
         }
@@ -347,7 +359,9 @@
         // Initialisatie
         getSolarData();
         setMoonPhase();
-        loadState(); // Hier laden we de opgeslagen icoontjes
+        loadState();
+        // Zet initiële oriëntatie op basis van de startpositie (40px, 40px)
+        updateMenuOrientation(40, 40);
     </script>
 </body>
 </html>

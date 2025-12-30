@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hemellichamen - Met Geheugen</title>
+
+    <style>
+        /* BASIS OPMAAK */
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: black;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; font-family: 'Segoe UI', sans-serif;
+            touch-action: none;
+        }
+
+        .universe-container {
+            position: relative;
+            width: 80vmin; height: 80vmin;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .circle {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-color: white;
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        /* ZON EN MAAN */
+        .celestial-body {
+            position: absolute;
+            color: white; font-size: 3.5rem;
+            z-index: 5; left: 50%; transform: translateX(-50%);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .sun { top: -95px; }
+        
+        .moon-container {
+            position: absolute;
+            bottom: -95px; 
+            width: 45px; height: 45px;
+            border-radius: 50%; border: 3px solid white;
+            left: 50%; transform: translateX(-50%);
+            z-index: 5; background-color: black;
+        }
+
+        .moon-full { background-color: white !important; }
+        .moon-first-quarter { background: linear-gradient(to right, black 50%, white 50%) !important; }
+        .moon-last-quarter { background: linear-gradient(to right, white 50%, black 50%) !important; }
+
+        /* UREN RING */
+        #ticks-container {
+            position: absolute; width: 100%; height: 100%; z-index: 1;
+        }
+        .hour-tick {
+            position: absolute; top: 0; left: 50%; height: 100%; width: 2px; pointer-events: none;
+        }
+        .tick-mark { width: 2px; height: 4%; background-color: black; margin: 0 auto; }
+        .tick-12 .tick-mark { width: 8px; height: 8%; }
+
+        /* PIJLEN */
+        .arrow-wrapper { position: absolute; top: 50%; left: 50%; width: 2px; height: 2px; z-index: 10; }
+        .arrow-icon {
+            color: white; font-size: 4rem; font-weight: 900;
+            position: absolute; transform: translateY(-52vmin); 
+        }
+
+        /* HET MENU */
+        #draggable-menu {
+            position: absolute; top: 40px; left: 40px;
+            display: flex; gap: 15px; padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px; cursor: grab; z-index: 1000;
+            user-select: none; touch-action: none;
+        }
+
+        .menu-item {
+            position: relative; width: 45px; height: 45px;
+            background: rgba(255, 255, 255, 0.1); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            color: white; cursor: pointer; font-size: 1.5rem;
+        }
+
+        /* UITKLAPMENU */
+        .expandable { display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 10; }
+        .expand-down { top: 100%; padding-top: 15px; }
+        .expand-up { bottom: 100%; padding-bottom: 15px; }
+        .menu-item:hover .expandable { display: block; }
+
+        .expandable-content {
+            background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px);
+            padding: 12px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex; flex-direction: column; gap: 10px;
+            max-height: 60vh; overflow-y: auto;
+        }
+
+        .sub-icon {
+            width: 35px; height: 35px; background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            color: white; cursor: pointer; font-size: 1.2rem;
+        }
+
+        /* GEPLAATSTE ICOONTJES */
+        .dropped-icon {
+            position: absolute; width: 45px; height: 45px;
+            background-color: black; color: white; border: 1px solid white; 
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            cursor: grab; z-index: 500; font-weight: bold; 
+            touch-action: none; user-select: none; transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+        }
+
+        @media print {
+            @page { size: portrait; margin: 0; }
+            body, html { background-color: white !important; height: 100vh !important; display: flex !important; justify-content: center !important; align-items: center !important; }
+            #draggable-menu { display: none !important; }
+            .universe-container { width: 17cm !important; height: 17cm !important; }
+            .circle { background-color: white !important; border: 2px solid black !important; z-index: 0 !important; }
+            .tick-mark { background-color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .celestial-body, .sun, .arrow-icon { color: black !important; }
+            .moon-container { border: 2px solid black !important; background-color: white !important; }
+            .dropped-icon { 
+                background-color: black !important; color: white !important; border: none !important;
+                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="universe-container" id="universe">
+        <div id="ticks-container"></div>
+        <div id="arrows-container"></div>
+        <div class="celestial-body sun">&#9728;</div> 
+        <div class="circle"></div>
+        <div id="moon-phase" class="moon-container"></div> 
+    </div>
+
+    <div id="draggable-menu">
+        <div class="menu-item">
+            <span>&#43;</span>
+            <div class="expandable expand-down">
+                <div class="expandable-content">
+                    <div class="sub-icon" title="Alarm" onclick="spawnIcon('⏰')">⏰</div>
+                    <div class="sub-icon" title="Gebed" onclick="spawnIcon('🕌')">🕌</div>
+                    <div class="sub-icon" title="Lezen" onclick="spawnIcon('📖')">📖</div>
+                    <div class="sub-icon" title="Douchen" onclick="spawnIcon('🚿')">🚿</div>
+                    <div class="sub-icon" title="Appel" onclick="spawnIcon('🍎')">🍎</div>
+                    <div class="sub-icon" title="Koffie" onclick="spawnIcon('☕')">☕</div>
+                    <div class="sub-icon" title="Werk/Studie" onclick="spawnIcon('📈')">📈</div>
+                    <div class="sub-icon" title="Lunch" onclick="spawnIcon('🥪')">🥪</div>
+                    <div class="sub-icon" title="Slaapmasker" onclick="spawnIcon('🎭')">🎭</div>
+                    <div class="sub-icon" title="Sport" onclick="spawnIcon('💪')">💪</div>
+                    <div class="sub-icon" title="Maaltijd" onclick="spawnIcon('🍴')">🍴</div>
+                    <div class="sub-icon" title="Familie" onclick="spawnIcon('👨‍👩‍👧‍👦')">👨‍👩‍👧‍👦</div>
+                    <div class="sub-icon" title="Slapen" onclick="spawnIcon('🛌')">🛌</div>
+                </div>
+            </div>
+        </div>
+        <div class="menu-item" onclick="window.print()"><span>&#128424;</span></div>
+    </div>
+
+    <script>
+        let activeElement = null;
+        let startX, startY, elemStartX, elemStartY;
+        
+        const menu = document.getElementById("draggable-menu");
+        const universe = document.getElementById("universe");
+        const ticksContainer = document.getElementById("ticks-container");
+        const arrowsContainer = document.getElementById("arrows-container");
+        const moonElement = document.getElementById("moon-phase");
+
+        // --- GEHEUGEN FUNCTIES ---
+        function saveState() {
+            const icons = [];
+            document.querySelectorAll('.dropped-icon').forEach(icon => {
+                icons.push({
+                    text: icon.innerText,
+                    left: icon.style.left,
+                    top: icon.style.top
+                });
+            });
+            localStorage.setItem('universeIcons', JSON.stringify(icons));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('universeIcons');
+            if (saved) {
+                const icons = JSON.parse(saved);
+                icons.forEach(data => {
+                    const newDiv = createIconElement(data.text);
+                    newDiv.style.left = data.left;
+                    newDiv.style.top = data.top;
+                    universe.appendChild(newDiv);
+                });
+            }
+        }
+
+        // --- SLEEP ENGINE ---
+        function startDragging(e) {
+            const target = e.target.closest('#draggable-menu, .dropped-icon');
+            if (!target || e.target.closest('.expandable-content')) return;
+            
+            activeElement = target;
+            const clientX = e.type.startsWith("touch") ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.startsWith("touch") ? e.touches[0].clientY : e.clientY;
+            
+            startX = clientX;
+            startY = clientY;
+            const rect = activeElement.getBoundingClientRect();
+            const containerRect = universe.getBoundingClientRect();
+
+            if (activeElement === menu) {
+                elemStartX = activeElement.offsetLeft;
+                elemStartY = activeElement.offsetTop;
+            } else {
+                let currentLeftPx = rect.left - containerRect.left + (rect.width / 2);
+                let currentTopPx = rect.top - containerRect.top + (rect.height / 2);
+                elemStartX = (currentLeftPx / containerRect.width) * 100;
+                elemStartY = (currentTopPx / containerRect.height) * 100;
+            }
+            activeElement.style.cursor = "grabbing";
+            if (e.cancelable) e.preventDefault();
+        }
+
+        function moveDragging(e) {
+            if (!activeElement) return;
+            const clientX = e.type.startsWith("touch") ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.startsWith("touch") ? e.touches[0].clientY : e.clientY;
+            const deltaX = clientX - startX;
+            const deltaY = clientY - startY;
+
+            if (activeElement === menu) {
+                activeElement.style.left = (elemStartX + deltaX) + "px";
+                activeElement.style.top = (elemStartY + deltaY) + "px";
+            } else {
+                const containerRect = universe.getBoundingClientRect();
+                activeElement.style.left = (elemStartX + (deltaX / containerRect.width) * 100) + "%";
+                activeElement.style.top = (elemStartY + (deltaY / containerRect.height) * 100) + "%";
+            }
+        }
+
+        function stopDragging() { 
+            if (activeElement) { 
+                if (activeElement.classList.contains('dropped-icon')) saveState();
+                activeElement.style.cursor = "grab"; 
+                activeElement = null; 
+            } 
+        }
+
+        document.addEventListener("mousedown", startDragging);
+        document.addEventListener("touchstart", startDragging, { passive: false });
+        document.addEventListener("mousemove", moveDragging);
+        document.addEventListener("touchmove", moveDragging, { passive: false });
+        document.addEventListener("mouseup", stopDragging);
+        document.addEventListener("touchend", stopDragging);
+
+        // --- ICON LOGICA ---
+        function createIconElement(text) {
+            const newDiv = document.createElement('div');
+            newDiv.className = 'dropped-icon';
+            newDiv.innerText = text;
+            
+            newDiv.addEventListener('dblclick', function() { 
+                this.remove(); 
+                saveState();
+            });
+            
+            let lastTap = 0;
+            newDiv.addEventListener('touchstart', function(e) {
+                let now = new Date().getTime();
+                if (now - lastTap < 400) { this.remove(); saveState(); e.preventDefault(); }
+                lastTap = now;
+            });
+            return newDiv;
+        }
+
+        function spawnIcon(text) {
+            const newDiv = createIconElement(text);
+            newDiv.style.left = "50%"; 
+            newDiv.style.top = "50%";
+            universe.appendChild(newDiv);
+            saveState();
+        }
+
+        // --- KLOK & ZON ---
+        function drawClock(offsetDegrees = 0) {
+            ticksContainer.innerHTML = ''; 
+            for (let i = 0; i < 24; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'hour-tick';
+                if (i === 12) wrapper.classList.add('tick-12');
+                const mark = document.createElement('div');
+                mark.className = 'tick-mark';
+                wrapper.appendChild(mark);
+                const angle = ((i - 12) * 15) + offsetDegrees;
+                wrapper.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+                ticksContainer.appendChild(wrapper);
+            }
+        }
+
+        function getSolarData() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    fetch(`https://api.sunrise-sunset.org/json?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&formatted=0`)
+                    .then(r => r.json()).then(data => {
+                        if(data.status === "OK") {
+                            const noon = new Date(data.results.solar_noon);
+                            const offsetDegrees = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
+                            drawClock(offsetDegrees);
+                            createArrow(noon, new Date(data.results.sunrise), 'up');
+                            createArrow(noon, new Date(data.results.sunset), 'down');
+                        }
+                    });
+                }, () => drawClock(0));
+            } else { drawClock(0); }
+        }
+
+        function createArrow(noonDate, eventDate, direction) {
+            const angle = ((eventDate - noonDate) / (1000 * 60 * 60)) * 15;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'arrow-wrapper';
+            const icon = document.createElement('div');
+            icon.className = 'arrow-icon';
+            icon.innerHTML = direction === 'up' ? '&#8593;' : '&#8595;';
+            wrapper.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+            icon.style.transform = `translateY(-52vmin) rotate(${-angle}deg)`;
+            wrapper.appendChild(icon);
+            arrowsContainer.appendChild(wrapper);
+        }
+
+        function setMoonPhase() {
+            const cycle = 29.53;
+            const pos = ((new Date().getTime() - new Date('2024-01-11').getTime()) / (1000 * 60 * 60 * 24)) % cycle;
+            moonElement.className = 'moon-container';
+            if (pos < 3.7 || pos > 25.8) ; 
+            else if (pos < 11.1) moonElement.classList.add('moon-first-quarter');
+            else if (pos < 18.5) moonElement.classList.add('moon-full');
+            else moonElement.classList.add('moon-last-quarter');
+        }
+
+        // Initialisatie
+        getSolarData();
+        setMoonPhase();
+        loadState(); // Hier laden we de opgeslagen icoontjes
+    </script>
+</body>
+</html>

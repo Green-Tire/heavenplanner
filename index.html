@@ -6,138 +6,164 @@
     <title>Hemelplanner</title>
 
     <style>
-        /* BASIS OPMAAK */
+        :root { 
+            --circle-bg: white; 
+            --theme-color: black; 
+        }
+        
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: black;
+            background-color: var(--theme-color) !important;
             display: flex; justify-content: center; align-items: center;
             overflow: hidden; font-family: 'Segoe UI', sans-serif;
             touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .universe-container {
             position: relative;
-            width: 80vmin; height: 80vmin;
+            width: 75vmin; height: 75vmin;
             display: flex; justify-content: center; align-items: center;
         }
 
         .circle {
             position: absolute;
             width: 100%; height: 100%;
-            background-color: white;
+            background-color: white !important;
             border-radius: 50%;
             z-index: 0;
+            border: 1px solid transparent;
         }
 
-        /* ZON EN MAAN */
+        /* ZON */
         .celestial-body {
-            position: absolute;
-            color: white; font-size: 3.5rem;
+            position: absolute; 
             z-index: 5; left: 50%; transform: translateX(-50%);
             display: flex; justify-content: center; align-items: center;
         }
-        .sun { top: -95px; }
+        .sun { top: -14vmin; width: 12vmin; height: 12vmin; }
+        .sun svg { width: 100%; height: 100%; fill: white; }
+        .sun svg line { stroke: white; }
         
+        /* MAAN */
         .moon-container {
-            position: absolute;
-            bottom: -95px; 
-            width: 45px; height: 45px;
-            border-radius: 50%; border: 3px solid white;
+            position: absolute; bottom: -12vmin; 
+            width: 8vmin; height: 8vmin;
+            border-radius: 50%; border: 2px solid white !important;
             left: 50%; transform: translateX(-50%);
-            z-index: 5; background-color: black;
+            z-index: 5; background-color: white !important;
+            overflow: hidden;
         }
 
-        .moon-full { background-color: white !important; }
-        .moon-first-quarter { background: linear-gradient(to right, black 50%, white 50%) !important; }
-        .moon-last-quarter { background: linear-gradient(to right, white 50%, black 50%) !important; }
+        .moon-container::after {
+            content: '';
+            position: absolute;
+            top: 0; width: 50%; height: 100%;
+            background-color: black !important;
+            display: none;
+            z-index: 6;
+        }
+        .moon-first-quarter::after { display: block; left: 0; }
+        .moon-last-quarter::after { display: block; right: 0; }
+        .moon-new { background-color: black !important; }
 
         /* UREN RING */
-        #ticks-container {
-            position: absolute; width: 100%; height: 100%; z-index: 1;
-        }
-        .hour-tick {
-            position: absolute; top: 0; left: 50%; height: 100%; width: 2px; pointer-events: none;
-        }
-        .tick-mark { width: 2px; height: 4%; background-color: black; margin: 0 auto; }
-        .tick-12 .tick-mark { width: 8px; height: 8%; }
+        #ticks-container { position: absolute; width: 100%; height: 100%; z-index: 1; }
+        .hour-tick { position: absolute; top: 0; left: 50%; height: 100%; width: 2px; pointer-events: none; }
+        .tick-mark { width: 2px; height: 4%; background-color: black !important; margin: 0 auto; }
+        .tick-12 .tick-mark { width: 6px; height: 8%; }
 
-        /* UURCIJFERS */
         .hour-number {
-            position: absolute;
-            top: 10%; /* Positie binnen de cirkel */
-            left: 50%;
+            position: absolute; top: 10%; left: 50%;
             transform: translateX(-50%);
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: black;
+            font-weight: bold; font-size: 3.5vmin; color: black !important;
         }
 
         /* PIJLEN */
         .arrow-wrapper { position: absolute; top: 50%; left: 50%; width: 2px; height: 2px; z-index: 10; }
         .arrow-icon {
-            color: white; font-size: 4rem; font-weight: 900;
-            position: absolute; transform: translateY(-52vmin); 
+            color: white; font-size: 8vmin; font-weight: 900;
+            position: absolute; transform: translateY(-46vmin); 
         }
 
-        /* HET MENU */
+        /* MENU */
         #draggable-menu {
-            position: absolute; top: 40px; left: 40px;
-            display: flex; gap: 15px; padding: 10px 15px;
-            background: rgba(255, 255, 255, 0.15);
+            position: absolute; top: 20px; left: 20px;
+            display: flex; gap: 10px; padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50px; cursor: grab; z-index: 1000;
-            user-select: none; touch-action: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 40px; cursor: grab; z-index: 1000;
         }
 
         .menu-item {
-            position: relative; width: 45px; height: 45px;
-            background: rgba(255, 255, 255, 0.1); border-radius: 50%;
+            position: relative; width: 40px; height: 40px;
+            background: rgba(255, 255, 255, 0.15); border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
-            color: white; cursor: pointer; font-size: 1.5rem;
+            color: white; font-size: 1.2rem;
         }
 
         .expandable { display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 10; }
-        .expand-down { top: 100%; padding-top: 15px; }
-        .expand-up { bottom: 100%; padding-bottom: 15px; }
-        .menu-item:hover .expandable { display: block; }
+        .expand-down { top: 100%; padding-top: 10px; }
+        .expand-up { bottom: 100%; padding-bottom: 10px; }
+        .menu-item.active .expandable { display: block; }
 
         .expandable-content {
-            background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px);
-            padding: 12px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.2);
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            max-height: 60vh; overflow-y: auto;
+            background: rgba(20, 20, 20, 0.95); padding: 10px; border-radius: 15px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .sub-icon {
             width: 35px; height: 35px; background: rgba(255, 255, 255, 0.2);
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            color: white; cursor: pointer; font-size: 1.2rem;
+            color: white; font-size: 1.1rem;
         }
 
         .dropped-icon {
-            position: absolute; width: 45px; height: 45px;
-            background-color: black; color: white; border: 1px solid white; 
+            position: absolute; width: 8vmin; height: 8vmin; /* Iets kleiner gemaakt */
+            background-color: var(--theme-color) !important; 
+            color: white !important; border: 1px solid white; 
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            cursor: grab; z-index: 500; font-weight: bold; 
-            touch-action: none; user-select: none; transform: translate(-50%, -50%);
-            font-size: 1.5rem;
+            cursor: grab; z-index: 500; font-size: 4.5vmin; transform: translate(-50%, -50%);
         }
 
+        #color-picker { position: absolute; opacity: 0; width: 0; height: 0; }
+
+        /* --- FIX VOOR PRINTWEERGAVE --- */
         @media print {
-            @page { size: portrait; margin: 0; }
-            body, html { background-color: white !important; height: 100vh !important; display: flex !important; justify-content: center !important; align-items: center !important; }
+            body, html { background: white !important; color: black !important; }
             #draggable-menu { display: none !important; }
-            .universe-container { width: 17cm !important; height: 17cm !important; }
-            .circle { background-color: white !important; border: 2px solid black !important; z-index: 0 !important; }
-            .tick-mark { background-color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .celestial-body, .sun, .arrow-icon { color: black !important; }
+            .universe-container { width: 16cm; height: 16cm; }
+            .circle { border: 2px solid black !important; background: white !important; }
+            
+            /* Zon op zwart */
+            .sun svg { fill: black !important; }
+            .sun svg line { stroke: black !important; stroke-width: 2.5px; }
+            
+            /* Pijlen en tekst */
+            .arrow-icon { color: black !important; }
+            .hour-number { color: black !important; }
+            .tick-mark { background-color: black !important; -webkit-print-color-adjust: exact; }
+
+            /* Maan: geforceerd zwart via border of filter */
             .moon-container { border: 2px solid black !important; background-color: white !important; }
+            .moon-container::after { 
+                display: block;
+                background-color: black !important; 
+                -webkit-print-color-adjust: exact; 
+                box-shadow: inset 0 0 0 1000px black; /* Extra force voor printers */
+            }
+            .moon-new { box-shadow: inset 0 0 0 1000px black !important; }
+
+            /* Icoontjes: geforceerd zwart achtergrond */
             .dropped-icon { 
-                background-color: black !important; color: white !important; border: none !important;
-                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+                background-color: black !important; 
+                color: white !important; 
+                border: 1px solid black !important;
+                box-shadow: inset 0 0 0 1000px black !important;
+                -webkit-print-color-adjust: exact;
             }
         }
     </style>
@@ -147,131 +173,105 @@
     <div class="universe-container" id="universe">
         <div id="ticks-container"></div>
         <div id="arrows-container"></div>
-        <div class="celestial-body sun">&#9728;</div> 
+        
+        <div class="celestial-body sun">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" stroke-width="2" stroke-linecap="round" />
+                <line x1="12" y1="21" x2="12" y2="23" stroke-width="2" stroke-linecap="round" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke-width="2" stroke-linecap="round" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke-width="2" stroke-linecap="round" />
+                <line x1="1" y1="12" x2="3" y2="12" stroke-width="2" stroke-linecap="round" />
+                <line x1="21" y1="12" x2="23" y2="12" stroke-width="2" stroke-linecap="round" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke-width="2" stroke-linecap="round" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke-width="2" stroke-linecap="round" />
+            </svg>
+        </div> 
+
         <div class="circle"></div>
         <div id="moon-phase" class="moon-container"></div> 
     </div>
 
     <div id="draggable-menu">
-        <div id="add-btn" class="menu-item">
-            <span>&#43;</span>
+        <div id="add-btn" class="menu-item"><span>＋</span>
             <div id="expand-box" class="expandable expand-down">
-                <div class="expandable-content">
-                    <div class="sub-icon" title="Alarm" onclick="spawnIcon('⏰')">⏰</div>
-                    <div class="sub-icon" title="Gebed" onclick="spawnIcon('🕌')">🕌</div>
-                    <div class="sub-icon" title="Lezen" onclick="spawnIcon('📖')">📖</div>
-                    <div class="sub-icon" title="Douchen" onclick="spawnIcon('🚿')">🚿</div>
-                    <div class="sub-icon" title="Appel" onclick="spawnIcon('🍎')">🍎</div>
-                    <div class="sub-icon" title="Koffie" onclick="spawnIcon('☕')">☕</div>
-                    <div class="sub-icon" title="Werk/Studie" onclick="spawnIcon('📈')">📈</div>
-                    <div class="sub-icon" title="Lunch" onclick="spawnIcon('🥪')">🥪</div>
-                    <div class="sub-icon" title="Slaapmasker" onclick="spawnIcon('🎭')">🎭</div>
-                    <div class="sub-icon" title="Sport" onclick="spawnIcon('💪')">💪</div>
-                    <div class="sub-icon" title="Maaltijd" onclick="spawnIcon('🍴')">🍴</div>
-                    <div class="sub-icon" title="Familie" onclick="spawnIcon('👨‍👩‍👧‍👦')">👨‍👩‍👧‍👦</div>
-                    <div class="sub-icon" title="Slapen" onclick="spawnIcon('🛌')">🛌</div>
+                <div class="expandable-content" id="sub-menu">
+                    <div class="sub-icon" onclick="spawnIcon('⏰')">⏰</div>
+                    <div class="sub-icon" onclick="spawnIcon('🕌')">🕌</div>
+                    <div class="sub-icon" onclick="spawnIcon('📖')">📖</div>
+                    <div class="sub-icon" onclick="spawnIcon('🚿')">🚿</div>
+                    <div class="sub-icon" onclick="spawnIcon('🍎')">🍎</div>
+                    <div class="sub-icon" onclick="spawnIcon('☕')">☕</div>
+                    <div class="sub-icon" onclick="spawnIcon('📈')">📈</div>
+                    <div class="sub-icon" onclick="spawnIcon('🥪')">🥪</div>
+                    <div class="sub-icon" onclick="spawnIcon('🎭')">🎭</div>
+                    <div class="sub-icon" onclick="spawnIcon('💪')">💪</div>
+                    <div class="sub-icon" onclick="spawnIcon('🍴')">🍴</div>
+                    <div class="sub-icon" onclick="spawnIcon('🛌')">🛌</div>
                 </div>
             </div>
         </div>
-        <div id="print-btn" class="menu-item" onclick="window.print()"><span>&#128424;</span></div>
+        <label for="color-picker" class="menu-item" style="cursor: pointer;">
+            <span>🎨</span><input type="color" id="color-picker" value="#000000">
+        </label>
+        <div id="print-btn" class="menu-item" onclick="window.print()"><span>⎙</span></div>
     </div>
 
     <script>
         let activeElement = null;
         let startX, startY, elemStartX, elemStartY;
+        let isDragging = false;
         
         const menu = document.getElementById("draggable-menu");
-        const expandBox = document.getElementById("expand-box");
+        const addBtn = document.getElementById("add-btn");
         const universe = document.getElementById("universe");
-        const ticksContainer = document.getElementById("ticks-container");
-        const arrowsContainer = document.getElementById("arrows-container");
-        const moonElement = document.getElementById("moon-phase");
+        const colorPicker = document.getElementById("color-picker");
 
-        function updateMenuOrientation(x, y) {
-            if (x < window.innerWidth / 2) {
-                menu.style.flexDirection = "row-reverse";
-            } else {
-                menu.style.flexDirection = "row";
-            }
+        colorPicker.addEventListener('input', (e) => {
+            const newColor = e.target.value;
+            document.documentElement.style.setProperty('--theme-color', newColor);
+            saveState();
+        });
 
-            if (y > window.innerHeight / 2) {
-                expandBox.classList.replace("expand-down", "expand-up");
-            } else {
-                expandBox.classList.replace("expand-up", "expand-down");
-            }
-        }
+        addBtn.addEventListener('click', (e) => {
+            if (!isDragging) { addBtn.classList.toggle('active'); e.stopPropagation(); }
+        });
 
-        function saveState() {
-            const icons = [];
-            document.querySelectorAll('.dropped-icon').forEach(icon => {
-                icons.push({ text: icon.innerText, left: icon.style.left, top: icon.style.top });
-            });
-            localStorage.setItem('universeIcons', JSON.stringify(icons));
-        }
-
-        function loadState() {
-            const saved = localStorage.getItem('universeIcons');
-            if (saved) {
-                JSON.parse(saved).forEach(data => {
-                    const newDiv = createIconElement(data.text);
-                    newDiv.style.left = data.left;
-                    newDiv.style.top = data.top;
-                    universe.appendChild(newDiv);
-                });
-            }
-        }
+        document.addEventListener('click', () => addBtn.classList.remove('active'));
 
         function startDragging(e) {
             const target = e.target.closest('#draggable-menu, .dropped-icon');
-            if (!target || e.target.closest('.expandable-content')) return;
-            
-            activeElement = target;
-            const clientX = e.type.startsWith("touch") ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type.startsWith("touch") ? e.touches[0].clientY : e.clientY;
-            
-            startX = clientX; startY = clientY;
-            const rect = activeElement.getBoundingClientRect();
-            const containerRect = universe.getBoundingClientRect();
-
+            if (!target || e.target.closest('.expandable-content') || e.target.closest('#color-picker')) return;
+            isDragging = false; activeElement = target;
+            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
+            startX = touch.clientX; startY = touch.clientY;
             if (activeElement === menu) {
-                elemStartX = activeElement.offsetLeft;
-                elemStartY = activeElement.offsetTop;
+                elemStartX = activeElement.offsetLeft; elemStartY = activeElement.offsetTop;
             } else {
-                let currentLeftPx = rect.left - containerRect.left + (rect.width / 2);
-                let currentTopPx = rect.top - containerRect.top + (rect.height / 2);
-                elemStartX = (currentLeftPx / containerRect.width) * 100;
-                elemStartY = (currentTopPx / containerRect.height) * 100;
+                const rect = activeElement.getBoundingClientRect();
+                const cRect = universe.getBoundingClientRect();
+                elemStartX = ((rect.left + rect.width/2 - cRect.left) / cRect.width) * 100;
+                elemStartY = ((rect.top + rect.height/2 - cRect.top) / cRect.height) * 100;
             }
-            activeElement.style.cursor = "grabbing";
-            if (e.cancelable) e.preventDefault();
         }
 
         function moveDragging(e) {
             if (!activeElement) return;
-            const clientX = e.type.startsWith("touch") ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type.startsWith("touch") ? e.touches[0].clientY : e.clientY;
-            const deltaX = clientX - startX;
-            const deltaY = clientY - startY;
-
+            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
+            const deltaX = touch.clientX - startX; const deltaY = touch.clientY - startY;
+            if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) isDragging = true;
             if (activeElement === menu) {
-                const newX = elemStartX + deltaX;
-                const newY = elemStartY + deltaY;
-                activeElement.style.left = newX + "px";
-                activeElement.style.top = newY + "px";
-                updateMenuOrientation(newX, newY);
+                menu.style.left = (elemStartX + deltaX) + "px";
+                menu.style.top = (elemStartY + deltaY) + "px";
+                updateMenuOrientation(elemStartX + deltaX, elemStartY + deltaY);
             } else {
-                const containerRect = universe.getBoundingClientRect();
-                activeElement.style.left = (elemStartX + (deltaX / containerRect.width) * 100) + "%";
-                activeElement.style.top = (elemStartY + (deltaY / containerRect.height) * 100) + "%";
+                const cRect = universe.getBoundingClientRect();
+                activeElement.style.left = (elemStartX + (deltaX / cRect.width) * 100) + "%";
+                activeElement.style.top = (elemStartY + (deltaY / cRect.height) * 100) + "%";
             }
         }
 
-        function stopDragging() { 
-            if (activeElement) { 
-                if (activeElement.classList.contains('dropped-icon')) saveState();
-                activeElement.style.cursor = "grab"; activeElement = null; 
-            } 
-        }
+        function stopDragging() { if (activeElement && activeElement.classList.contains('dropped-icon')) saveState(); activeElement = null; }
 
         document.addEventListener("mousedown", startDragging);
         document.addEventListener("touchstart", startDragging, { passive: false });
@@ -280,61 +280,48 @@
         document.addEventListener("mouseup", stopDragging);
         document.addEventListener("touchend", stopDragging);
 
-        function createIconElement(text) {
-            const newDiv = document.createElement('div');
-            newDiv.className = 'dropped-icon';
-            newDiv.innerText = text;
-            newDiv.addEventListener('dblclick', function() { this.remove(); saveState(); });
-            let lastTap = 0;
-            newDiv.addEventListener('touchstart', function(e) {
-                let now = new Date().getTime();
-                if (now - lastTap < 400) { this.remove(); saveState(); e.preventDefault(); }
-                lastTap = now;
-            });
-            return newDiv;
+        function updateMenuOrientation(x, y) {
+            menu.style.flexDirection = x < window.innerWidth / 2 ? "row-reverse" : "row";
+            const expandBox = document.getElementById("expand-box");
+            if (y > window.innerHeight / 2) expandBox.classList.replace("expand-down", "expand-up");
+            else expandBox.classList.replace("expand-up", "expand-down");
         }
 
-        function spawnIcon(text) {
-            const newDiv = createIconElement(text);
-            newDiv.style.left = "50%"; newDiv.style.top = "50%";
-            universe.appendChild(newDiv);
-            saveState();
+        function spawnIcon(emoji) {
+            const div = document.createElement('div');
+            div.className = 'dropped-icon'; div.innerText = emoji;
+            div.style.left = "50%"; div.style.top = "50%";
+            div.onclick = (e) => { if(!isDragging) { div.remove(); saveState(); } };
+            universe.appendChild(div); saveState();
         }
 
-        function drawClock(offsetDegrees = 0) {
-            ticksContainer.innerHTML = ''; 
+        function drawClock(offset = 0) {
+            const container = document.getElementById("ticks-container"); container.innerHTML = ''; 
             for (let i = 0; i < 24; i++) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'hour-tick';
-                
-                // Dikke lijnen voor kwartieren (0, 6, 12, 18)
+                const wrapper = document.createElement('div'); wrapper.className = 'hour-tick';
                 if (i % 6 === 0) {
                     wrapper.classList.add('tick-12');
-                    
-                    // Cijfers toevoegen voor 12, 18, 0 (24) en 6
-                    const num = document.createElement('div');
-                    num.className = 'hour-number';
-                    
-                    // Correcte labels: 0 wordt 24, 6 wordt 06, de rest normaal
-                    let label = i;
-                    if (i === 0) label = 24;
-                    if (i === 6) label = "06";
-                    
-                    num.innerText = label;
-                    // Draai het cijfer terug zodat het rechtop staat
-                    const angle = ((i - 12) * 15) + offsetDegrees;
-                    num.style.transform = `translateX(-50%) rotate(${-angle}deg)`;
+                    const num = document.createElement('div'); num.className = 'hour-number';
+                    num.innerText = i === 0 ? "24" : (i < 10 ? "0"+i : i);
+                    num.style.transform = `translateX(-50%) rotate(${-( (i-12)*15 + offset )}deg)`;
                     wrapper.appendChild(num);
                 }
-
-                const mark = document.createElement('div');
-                mark.className = 'tick-mark';
+                const mark = document.createElement('div'); mark.className = 'tick-mark';
                 wrapper.appendChild(mark);
-                
-                const angle = ((i - 12) * 15) + offsetDegrees;
-                wrapper.style.transform = `translateX(-50%) rotate(${angle}deg)`;
-                ticksContainer.appendChild(wrapper);
+                wrapper.style.transform = `translateX(-50%) rotate(${((i-12)*15)+offset}deg)`;
+                container.appendChild(wrapper);
             }
+        }
+
+        function setMoonPhase() {
+            const moonEl = document.getElementById("moon-phase");
+            const cycle = 29.53; const now = new Date(); const reference = new Date('2024-01-11');
+            const pos = ((now - reference) / (1000 * 60 * 60 * 24)) % cycle;
+            moonEl.className = 'moon-container';
+            if (pos < 2 || pos > 27.5) moonEl.classList.add('moon-new');
+            else if (pos < 13) moonEl.classList.add('moon-first-quarter');
+            else if (pos < 17) moonEl.classList.add('moon-full');
+            else moonEl.classList.add('moon-last-quarter');
         }
 
         function getSolarData() {
@@ -342,45 +329,32 @@
                 navigator.geolocation.getCurrentPosition(pos => {
                     fetch(`https://api.sunrise-sunset.org/json?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&formatted=0`)
                     .then(r => r.json()).then(data => {
-                        if(data.status === "OK") {
-                            const noon = new Date(data.results.solar_noon);
-                            const offsetDegrees = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
-                            drawClock(offsetDegrees);
-                            createArrow(noon, new Date(data.results.sunrise), 'up');
-                            createArrow(noon, new Date(data.results.sunset), 'down');
-                        }
+                        const noon = new Date(data.results.solar_noon);
+                        const offset = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
+                        drawClock(offset);
                     });
                 }, () => drawClock(0));
-            } else { drawClock(0); }
+            } else drawClock(0);
         }
 
-        function createArrow(noonDate, eventDate, direction) {
-            const angle = ((eventDate - noonDate) / (1000 * 60 * 60)) * 15;
-            const wrapper = document.createElement('div');
-            wrapper.className = 'arrow-wrapper';
-            const icon = document.createElement('div');
-            icon.className = 'arrow-icon';
-            icon.innerHTML = direction === 'up' ? '&#8593;' : '&#8595;';
-            wrapper.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
-            icon.style.transform = `translateY(-52vmin) rotate(${-angle}deg)`;
-            wrapper.appendChild(icon);
-            arrowsContainer.appendChild(wrapper);
+        function saveState() {
+            const icons = [...document.querySelectorAll('.dropped-icon')].map(i => ({text: i.innerText, left: i.style.left, top: i.style.top}));
+            localStorage.setItem('universeIcons', JSON.stringify(icons));
+            localStorage.setItem('themeColor', getComputedStyle(document.documentElement).getPropertyValue('--theme-color'));
         }
 
-        function setMoonPhase() {
-            const cycle = 29.53;
-            const pos = ((new Date().getTime() - new Date('2024-01-11').getTime()) / (1000 * 60 * 60 * 24)) % cycle;
-            moonElement.className = 'moon-container';
-            if (pos < 3.7 || pos > 25.8) ; 
-            else if (pos < 11.1) moonElement.classList.add('moon-first-quarter');
-            else if (pos < 18.5) moonElement.classList.add('moon-full');
-            else moonElement.classList.add('moon-last-quarter');
+        function loadState() {
+            const savedIcons = JSON.parse(localStorage.getItem('universeIcons') || "[]");
+            const savedColor = localStorage.getItem('themeColor');
+            if (savedColor) { document.documentElement.style.setProperty('--theme-color', savedColor); colorPicker.value = savedColor.trim(); }
+            savedIcons.forEach(d => {
+                const div = document.createElement('div'); div.className = 'dropped-icon'; div.innerText = d.text;
+                div.style.left = d.left; div.style.top = d.top;
+                div.onclick = () => { if(!isDragging) { div.remove(); saveState(); } };
+                universe.appendChild(div);
+            });
         }
-
-        getSolarData();
-        setMoonPhase();
-        loadState();
-        updateMenuOrientation(40, 40);
+        getSolarData(); setMoonPhase(); loadState();
     </script>
 </body>
 </html>

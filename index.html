@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hemelplanner</title>
 
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
         :root { 
             --circle-bg: white; 
-            --theme-color: black; 
+            --theme-color: #000000; 
+            --line-thickness: 2px;
         }
         
         body, html {
@@ -21,9 +24,10 @@
             -webkit-user-select: none;
         }
 
+        /* Container iets verkleind zodat zon/maan altijd passen (totaal blijft onder 100vmin) */
         .universe-container {
             position: relative;
-            width: 75vmin; height: 75vmin;
+            width: 68vmin; height: 68vmin;
             display: flex; justify-content: center; align-items: center;
         }
 
@@ -33,23 +37,22 @@
             background-color: white !important;
             border-radius: 50%;
             z-index: 0;
-            border: 1px solid transparent;
+            border: var(--line-thickness) solid transparent;
         }
 
-        /* ZON */
+        /* ZON & MAAN - Afstanden iets verkleind */
         .celestial-body {
             position: absolute; 
             z-index: 5; left: 50%; transform: translateX(-50%);
             display: flex; justify-content: center; align-items: center;
         }
-        .sun { top: -14vmin; width: 12vmin; height: 12vmin; }
+        .sun { top: -13vmin; width: 11vmin; height: 11vmin; }
         .sun svg { width: 100%; height: 100%; fill: white; }
         .sun svg line { stroke: white; }
         
-        /* MAAN */
         .moon-container {
-            position: absolute; bottom: -12vmin; 
-            width: 8vmin; height: 8vmin;
+            position: absolute; bottom: -11vmin; 
+            width: 7.5vmin; height: 7.5vmin;
             border-radius: 50%; border: 2px solid white !important;
             left: 50%; transform: translateX(-50%);
             z-index: 5; background-color: white !important;
@@ -68,8 +71,8 @@
         .moon-last-quarter::after { display: block; right: 0; }
         .moon-new { background-color: black !important; }
 
-        /* UREN RING */
-        #ticks-container { position: absolute; width: 100%; height: 100%; z-index: 1; }
+        /* UREN RING & LIJNEN */
+        #ticks-container, #solar-lines-container { position: absolute; width: 100%; height: 100%; z-index: 1; }
         .hour-tick { position: absolute; top: 0; left: 50%; height: 100%; width: 2px; pointer-events: none; }
         .tick-mark { width: 2px; height: 4%; background-color: black !important; margin: 0 auto; }
         .tick-12 .tick-mark { width: 6px; height: 8%; }
@@ -77,14 +80,17 @@
         .hour-number {
             position: absolute; top: 10%; left: 50%;
             transform: translateX(-50%);
-            font-weight: bold; font-size: 3.5vmin; color: black !important;
+            font-weight: bold; font-size: 3.2vmin; color: black !important;
         }
 
-        /* PIJLEN */
-        .arrow-wrapper { position: absolute; top: 50%; left: 50%; width: 2px; height: 2px; z-index: 10; }
-        .arrow-icon {
-            color: white; font-size: 8vmin; font-weight: 900;
-            position: absolute; transform: translateY(-46vmin); 
+        .solar-line {
+            position: absolute;
+            top: 0; left: 50%;
+            width: var(--line-thickness);
+            height: 50%;
+            background-color: black !important;
+            transform-origin: bottom center;
+            z-index: 2;
         }
 
         /* MENU */
@@ -101,7 +107,14 @@
             position: relative; width: 40px; height: 40px;
             background: rgba(255, 255, 255, 0.15); border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
-            color: white; font-size: 1.2rem;
+            color: white; cursor: pointer;
+        }
+
+        .lucide {
+            width: 20px;
+            height: 20px;
+            stroke: white;
+            stroke-width: 1.5px;
         }
 
         .expandable { display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 10; }
@@ -118,11 +131,11 @@
         .sub-icon {
             width: 35px; height: 35px; background: rgba(255, 255, 255, 0.2);
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            color: white; font-size: 1.1rem;
+            color: white; font-size: 1.1rem; cursor: pointer;
         }
 
         .dropped-icon {
-            position: absolute; width: 8vmin; height: 8vmin; /* Iets kleiner gemaakt */
+            position: absolute; width: 8vmin; height: 8vmin;
             background-color: var(--theme-color) !important; 
             color: white !important; border: 1px solid white; 
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
@@ -131,48 +144,27 @@
 
         #color-picker { position: absolute; opacity: 0; width: 0; height: 0; }
 
-        /* --- FIX VOOR PRINTWEERGAVE --- */
         @media print {
-            body, html { background: white !important; color: black !important; }
+            body, html { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             #draggable-menu { display: none !important; }
-            .universe-container { width: 16cm; height: 16cm; }
+            .universe-container { width: 15cm; height: 15cm; }
             .circle { border: 2px solid black !important; background: white !important; }
-            
-            /* Zon op zwart */
+            .sun { top: -3cm !important; }
             .sun svg { fill: black !important; }
-            .sun svg line { stroke: black !important; stroke-width: 2.5px; }
-            
-            /* Pijlen en tekst */
-            .arrow-icon { color: black !important; }
-            .hour-number { color: black !important; }
-            .tick-mark { background-color: black !important; -webkit-print-color-adjust: exact; }
-
-            /* Maan: geforceerd zwart via border of filter */
-            .moon-container { border: 2px solid black !important; background-color: white !important; }
-            .moon-container::after { 
-                display: block;
-                background-color: black !important; 
-                -webkit-print-color-adjust: exact; 
-                box-shadow: inset 0 0 0 1000px black; /* Extra force voor printers */
-            }
-            .moon-new { box-shadow: inset 0 0 0 1000px black !important; }
-
-            /* Icoontjes: geforceerd zwart achtergrond */
-            .dropped-icon { 
-                background-color: black !important; 
-                color: white !important; 
-                border: 1px solid black !important;
-                box-shadow: inset 0 0 0 1000px black !important;
-                -webkit-print-color-adjust: exact;
-            }
+            .sun svg line { stroke: black !important; }
+            .moon-container { bottom: -3cm !important; border: 2px solid black !important; }
+            .solar-line { background-color: black !important; width: 2px !important; }
+            .hour-number { color: black !important; visibility: visible !important; }
+            .tick-mark { background-color: black !important; }
+            .dropped-icon { border: 1px solid white !important; }
         }
     </style>
 </head>
 <body>
 
     <div class="universe-container" id="universe">
+        <div id="solar-lines-container"></div>
         <div id="ticks-container"></div>
-        <div id="arrows-container"></div>
         
         <div class="celestial-body sun">
             <svg viewBox="0 0 24 24">
@@ -193,31 +185,37 @@
     </div>
 
     <div id="draggable-menu">
-        <div id="add-btn" class="menu-item"><span>＋</span>
+        <div id="print-btn" class="menu-item" onclick="window.print()">
+            <i data-lucide="printer"></i>
+        </div>
+        <label for="color-picker" class="menu-item">
+            <i data-lucide="palette"></i>
+            <input type="color" id="color-picker" value="#000000">
+        </label>
+        <div id="add-btn" class="menu-item">
+            <i data-lucide="plus"></i>
             <div id="expand-box" class="expandable expand-down">
                 <div class="expandable-content" id="sub-menu">
-                    <div class="sub-icon" onclick="spawnIcon('⏰')">⏰</div>
-                    <div class="sub-icon" onclick="spawnIcon('🕌')">🕌</div>
-                    <div class="sub-icon" onclick="spawnIcon('📖')">📖</div>
-                    <div class="sub-icon" onclick="spawnIcon('🚿')">🚿</div>
-                    <div class="sub-icon" onclick="spawnIcon('🍎')">🍎</div>
-                    <div class="sub-icon" onclick="spawnIcon('☕')">☕</div>
-                    <div class="sub-icon" onclick="spawnIcon('📈')">📈</div>
-                    <div class="sub-icon" onclick="spawnIcon('🥪')">🥪</div>
-                    <div class="sub-icon" onclick="spawnIcon('🎭')">🎭</div>
-                    <div class="sub-icon" onclick="spawnIcon('💪')">💪</div>
-                    <div class="sub-icon" onclick="spawnIcon('🍴')">🍴</div>
-                    <div class="sub-icon" onclick="spawnIcon('🛌')">🛌</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '⏰')" ontouchstart="initDragSpawn(event, '⏰')">⏰</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🕌')" ontouchstart="initDragSpawn(event, '🕌')">🕌</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '📖')" ontouchstart="initDragSpawn(event, '📖')">📖</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🚿')" ontouchstart="initDragSpawn(event, '🚿')">🚿</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🍎')" ontouchstart="initDragSpawn(event, '🍎')">🍎</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '☕')" ontouchstart="initDragSpawn(event, '☕')">☕</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '📈')" ontouchstart="initDragSpawn(event, '📈')">📈</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🥪')" ontouchstart="initDragSpawn(event, '🥪')">🥪</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🎭')" ontouchstart="initDragSpawn(event, '🎭')">🎭</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '💪')" ontouchstart="initDragSpawn(event, '💪')">💪</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🍴')" ontouchstart="initDragSpawn(event, '🍴')">🍴</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🛌')" ontouchstart="initDragSpawn(event, '🛌')">🛌</div>
                 </div>
             </div>
         </div>
-        <label for="color-picker" class="menu-item" style="cursor: pointer;">
-            <span>🎨</span><input type="color" id="color-picker" value="#000000">
-        </label>
-        <div id="print-btn" class="menu-item" onclick="window.print()"><span>⎙</span></div>
     </div>
 
     <script>
+        lucide.createIcons();
+
         let activeElement = null;
         let startX, startY, elemStartX, elemStartY;
         let isDragging = false;
@@ -255,15 +253,32 @@
             }
         }
 
+        function initDragSpawn(e, emoji) {
+            e.stopPropagation(); e.preventDefault();
+            const div = document.createElement('div');
+            div.className = 'dropped-icon'; div.innerText = emoji;
+            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
+            const cRect = universe.getBoundingClientRect();
+            const initialX = ((touch.clientX - cRect.left) / cRect.width) * 100;
+            const initialY = ((touch.clientY - cRect.top) / cRect.height) * 100;
+            div.style.left = initialX + "%"; div.style.top = initialY + "%";
+            div.onclick = (ev) => { if(!isDragging) { div.remove(); saveState(); } };
+            universe.appendChild(div);
+            activeElement = div; isDragging = true;
+            startX = touch.clientX; startY = touch.clientY;
+            elemStartX = initialX; elemStartY = initialY;
+            addBtn.classList.remove('active');
+        }
+
         function moveDragging(e) {
             if (!activeElement) return;
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
             const deltaX = touch.clientX - startX; const deltaY = touch.clientY - startY;
             if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) isDragging = true;
             if (activeElement === menu) {
-                menu.style.left = (elemStartX + deltaX) + "px";
-                menu.style.top = (elemStartY + deltaY) + "px";
-                updateMenuOrientation(elemStartX + deltaX, elemStartY + deltaY);
+                const newX = elemStartX + deltaX; const newY = elemStartY + deltaY;
+                menu.style.left = newX + "px"; menu.style.top = newY + "px";
+                updateMenuOrientation(newX, newY);
             } else {
                 const cRect = universe.getBoundingClientRect();
                 activeElement.style.left = (elemStartX + (deltaX / cRect.width) * 100) + "%";
@@ -281,18 +296,10 @@
         document.addEventListener("touchend", stopDragging);
 
         function updateMenuOrientation(x, y) {
-            menu.style.flexDirection = x < window.innerWidth / 2 ? "row-reverse" : "row";
+            menu.style.flexDirection = x < window.innerWidth / 2 ? "row" : "row-reverse";
             const expandBox = document.getElementById("expand-box");
             if (y > window.innerHeight / 2) expandBox.classList.replace("expand-down", "expand-up");
             else expandBox.classList.replace("expand-up", "expand-down");
-        }
-
-        function spawnIcon(emoji) {
-            const div = document.createElement('div');
-            div.className = 'dropped-icon'; div.innerText = emoji;
-            div.style.left = "50%"; div.style.top = "50%";
-            div.onclick = (e) => { if(!isDragging) { div.remove(); saveState(); } };
-            universe.appendChild(div); saveState();
         }
 
         function drawClock(offset = 0) {
@@ -311,6 +318,22 @@
                 wrapper.style.transform = `translateX(-50%) rotate(${((i-12)*15)+offset}deg)`;
                 container.appendChild(wrapper);
             }
+        }
+
+        function drawSolarLines(sunriseStr, sunsetStr, offset) {
+            const container = document.getElementById("solar-lines-container");
+            container.innerHTML = '';
+            const parseTime = (str) => {
+                const d = new Date(str);
+                return d.getHours() + d.getMinutes() / 60;
+            };
+            [parseTime(sunriseStr), parseTime(sunsetStr)].forEach(time => {
+                const line = document.createElement('div');
+                line.className = 'solar-line';
+                const rotation = ((time - 12) * 15) + offset;
+                line.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+                container.appendChild(line);
+            });
         }
 
         function setMoonPhase() {
@@ -332,6 +355,7 @@
                         const noon = new Date(data.results.solar_noon);
                         const offset = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
                         drawClock(offset);
+                        drawSolarLines(data.results.sunrise, data.results.sunset, offset);
                     });
                 }, () => drawClock(0));
             } else drawClock(0);
@@ -346,14 +370,20 @@
         function loadState() {
             const savedIcons = JSON.parse(localStorage.getItem('universeIcons') || "[]");
             const savedColor = localStorage.getItem('themeColor');
-            if (savedColor) { document.documentElement.style.setProperty('--theme-color', savedColor); colorPicker.value = savedColor.trim(); }
+            if (savedColor) { 
+                const color = savedColor.trim();
+                document.documentElement.style.setProperty('--theme-color', color); 
+                colorPicker.value = color; 
+            }
             savedIcons.forEach(d => {
                 const div = document.createElement('div'); div.className = 'dropped-icon'; div.innerText = d.text;
                 div.style.left = d.left; div.style.top = d.top;
                 div.onclick = () => { if(!isDragging) { div.remove(); saveState(); } };
                 universe.appendChild(div);
             });
+            updateMenuOrientation(menu.offsetLeft, menu.offsetTop);
         }
+        
         getSolarData(); setMoonPhase(); loadState();
     </script>
 </body>

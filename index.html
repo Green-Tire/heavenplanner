@@ -61,6 +61,17 @@
         .tick-mark { width: 2px; height: 4%; background-color: black; margin: 0 auto; }
         .tick-12 .tick-mark { width: 8px; height: 8%; }
 
+        /* UURCIJFERS */
+        .hour-number {
+            position: absolute;
+            top: 10%; /* Positie binnen de cirkel */
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: black;
+        }
+
         /* PIJLEN */
         .arrow-wrapper { position: absolute; top: 50%; left: 50%; width: 2px; height: 2px; z-index: 10; }
         .arrow-icon {
@@ -68,7 +79,7 @@
             position: absolute; transform: translateY(-52vmin); 
         }
 
-        /* HET MENU (DYNAMISCH) */
+        /* HET MENU */
         #draggable-menu {
             position: absolute; top: 40px; left: 40px;
             display: flex; gap: 15px; padding: 10px 15px;
@@ -86,7 +97,6 @@
             color: white; cursor: pointer; font-size: 1.5rem;
         }
 
-        /* UITKLAPMENU */
         .expandable { display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 10; }
         .expand-down { top: 100%; padding-top: 15px; }
         .expand-up { bottom: 100%; padding-bottom: 15px; }
@@ -95,7 +105,9 @@
         .expandable-content {
             background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px);
             padding: 12px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex; flex-direction: column; gap: 10px;
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
             max-height: 60vh; overflow-y: auto;
         }
 
@@ -105,7 +117,6 @@
             color: white; cursor: pointer; font-size: 1.2rem;
         }
 
-        /* GEPLAATSTE ICOONTJES */
         .dropped-icon {
             position: absolute; width: 45px; height: 45px;
             background-color: black; color: white; border: 1px solid white; 
@@ -170,26 +181,19 @@
         let startX, startY, elemStartX, elemStartY;
         
         const menu = document.getElementById("draggable-menu");
-        const addBtn = document.getElementById("add-btn");
-        const printBtn = document.getElementById("print-btn");
         const expandBox = document.getElementById("expand-box");
         const universe = document.getElementById("universe");
         const ticksContainer = document.getElementById("ticks-container");
         const arrowsContainer = document.getElementById("arrows-container");
         const moonElement = document.getElementById("moon-phase");
 
-        // --- DINAMISCHE MENU LOGICA ---
         function updateMenuOrientation(x, y) {
-            // 1. Horizontale logica (Plus links of rechts)
             if (x < window.innerWidth / 2) {
-                // Linkerkant van scherm: Plus RECHTS van Print
                 menu.style.flexDirection = "row-reverse";
             } else {
-                // Rechterkant van scherm: Plus LINKS van Print
                 menu.style.flexDirection = "row";
             }
 
-            // 2. Verticale logica (Uitklappen naar boven of onder)
             if (y > window.innerHeight / 2) {
                 expandBox.classList.replace("expand-down", "expand-up");
             } else {
@@ -197,7 +201,6 @@
             }
         }
 
-        // --- GEHEUGEN ---
         function saveState() {
             const icons = [];
             document.querySelectorAll('.dropped-icon').forEach(icon => {
@@ -218,7 +221,6 @@
             }
         }
 
-        // --- SLEEP ENGINE ---
         function startDragging(e) {
             const target = e.target.closest('#draggable-menu, .dropped-icon');
             if (!target || e.target.closest('.expandable-content')) return;
@@ -278,7 +280,6 @@
         document.addEventListener("mouseup", stopDragging);
         document.addEventListener("touchend", stopDragging);
 
-        // --- ICON LOGICA ---
         function createIconElement(text) {
             const newDiv = document.createElement('div');
             newDiv.className = 'dropped-icon';
@@ -300,16 +301,36 @@
             saveState();
         }
 
-        // --- KLOK & ZON ---
         function drawClock(offsetDegrees = 0) {
             ticksContainer.innerHTML = ''; 
             for (let i = 0; i < 24; i++) {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'hour-tick';
-                if (i === 12) wrapper.classList.add('tick-12');
+                
+                // Dikke lijnen voor kwartieren (0, 6, 12, 18)
+                if (i % 6 === 0) {
+                    wrapper.classList.add('tick-12');
+                    
+                    // Cijfers toevoegen voor 12, 18, 0 (24) en 6
+                    const num = document.createElement('div');
+                    num.className = 'hour-number';
+                    
+                    // Correcte labels: 0 wordt 24, 6 wordt 06, de rest normaal
+                    let label = i;
+                    if (i === 0) label = 24;
+                    if (i === 6) label = "06";
+                    
+                    num.innerText = label;
+                    // Draai het cijfer terug zodat het rechtop staat
+                    const angle = ((i - 12) * 15) + offsetDegrees;
+                    num.style.transform = `translateX(-50%) rotate(${-angle}deg)`;
+                    wrapper.appendChild(num);
+                }
+
                 const mark = document.createElement('div');
                 mark.className = 'tick-mark';
                 wrapper.appendChild(mark);
+                
                 const angle = ((i - 12) * 15) + offsetDegrees;
                 wrapper.style.transform = `translateX(-50%) rotate(${angle}deg)`;
                 ticksContainer.appendChild(wrapper);
@@ -356,11 +377,9 @@
             else moonElement.classList.add('moon-last-quarter');
         }
 
-        // Initialisatie
         getSolarData();
         setMoonPhase();
         loadState();
-        // Zet initiële oriëntatie op basis van de startpositie (40px, 40px)
         updateMenuOrientation(40, 40);
     </script>
 </body>

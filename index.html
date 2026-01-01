@@ -21,6 +21,7 @@
             --menu-border: rgba(255, 255, 255, 0.3);
             --menu-item-bg: rgba(255, 255, 255, 0.15);
             --menu-text: white;
+            --zoom-level: 1;
         }
         
         body, html {
@@ -29,41 +30,46 @@
             display: flex; justify-content: center; align-items: center;
             overflow: hidden; font-family: 'Segoe UI', sans-serif;
             touch-action: none; user-select: none; -webkit-user-select: none;
+            /* Forceer kleuren voor print */
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
 
+        .zoom-wrapper {
+            display: flex; justify-content: center; align-items: center;
+            transform: scale(var(--zoom-level));
+            transition: transform 0.2s ease-out;
+            width: 100%; height: 100%;
+        }
+
         .universe-container {
             position: relative;
-            width: 68vmin; height: 68vmin;
+            width: 70vmin; height: 70vmin;
             display: flex; justify-content: center; align-items: center;
+            flex-shrink: 0;
         }
 
         #dual-circle {
             position: absolute; width: 100%; height: 100%;
             transform: rotate(-90deg);
-            z-index: 0;
-            border-radius: 50%;
-            box-sizing: border-box;
+            z-index: 0; border-radius: 50%; box-sizing: border-box;
             border: 1px solid var(--celestial-contrast);
-            transition: border-color 0.3s;
         }
 
         .celestial-body {
             position: absolute; z-index: 5; left: 50%; transform: translateX(-50%);
-            display: flex; justify-content: center; align-items: center;
         }
-        .sun { top: -13vmin; width: 11vmin; height: 11vmin; }
-        .sun svg { width: 100%; height: 100%; fill: var(--celestial-contrast); transition: fill 0.3s; }
-        .sun svg line { stroke: var(--celestial-contrast); transition: stroke 0.3s; }
+        .sun { top: -18%; width: 15%; height: 15%; }
+        .sun svg { width: 100%; height: 100%; fill: var(--celestial-contrast); }
+        .sun svg line { stroke: var(--celestial-contrast); }
         
+        /* Moon Print Fix */
         .moon-container {
-            position: absolute; bottom: -11vmin; width: 7.5vmin; height: 7.5vmin;
-            border-radius: 50%; 
-            border: 2px solid var(--celestial-contrast) !important;
+            position: absolute; bottom: -16%; width: 11%; height: 11%;
+            border-radius: 50%; border: 2px solid var(--celestial-contrast) !important;
             left: 50%; transform: translateX(-50%);
             z-index: 5; background-color: white !important; overflow: hidden;
-            transition: border-color 0.3s;
+            box-sizing: border-box;
         }
 
         .moon-container::after {
@@ -78,7 +84,9 @@
         .hour-tick { position: absolute; top: 0; left: 50%; height: 100%; width: 2px; pointer-events: none; }
         .tick-mark { width: 2px; height: 4%; background-color: black; margin: 0 auto; }
         .tick-12 .tick-mark { width: 6px; height: 8%; }
-        .hour-number { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 3.2vmin; }
+        
+        /* Cijfers dichterbij gezet */
+        .hour-number { position: absolute; top: 6%; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 3.5vmin; }
 
         .solar-line {
             position: absolute; top: 0; left: 50%; width: var(--line-thickness); height: 50%;
@@ -87,13 +95,10 @@
 
         #draggable-menu {
             position: absolute; top: 20px; left: 20px;
-            display: flex; 
-            flex-direction: row-reverse; 
-            gap: 10px; padding: 8px 12px;
+            display: flex; gap: 10px; padding: 8px 12px;
             background: var(--menu-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             border: 1px solid var(--menu-border); border-radius: 40px; cursor: grab; 
-            z-index: 1000;
-            transition: background 0.3s, border 0.3s;
+            z-index: 1500; /* Menu altijd boven geplaatste iconen */
         }
 
         .menu-item {
@@ -103,20 +108,22 @@
             color: var(--menu-text); cursor: pointer;
         }
 
-        .lucide { width: 20px; height: 20px; stroke: currentColor; stroke-width: 1.8px; }
-
-        .expandable { display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 10; }
+        .expandable { display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 1600; }
         .expand-down { top: 100%; padding-top: 10px; }
         .expand-up { bottom: 100%; padding-bottom: 10px; }
         .menu-item.active .expandable { display: block; }
 
         .expandable-content {
-            background: rgba(20, 20, 20, 0.95); padding: 10px; border-radius: 15px;
+            background: rgba(20, 20, 20, 0.95); padding: 12px; border-radius: 15px;
             display: grid; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 40px;
         }
 
         #palette-box .expandable-content { grid-template-columns: repeat(2, 1fr); }
         #expand-box .expandable-content { grid-template-columns: repeat(3, 1fr); }
+        #zoom-box .expandable-content { display: flex; align-items: center; padding: 15px; }
+
+        input[type=range] { width: 100px; cursor: pointer; }
 
         .sub-icon {
             width: 35px; height: 35px; background: rgba(255, 255, 255, 0.2);
@@ -125,47 +132,53 @@
         }
 
         .dropped-icon {
-            position: absolute; width: 7vmin; height: 7vmin;
+            position: absolute; width: 9%; height: 9%;
             background-color: var(--icon-bg); color: var(--text-contrast); 
-            border: 1px solid transparent;
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            cursor: grab; z-index: 500; font-size: 3.5vmin; transform: translate(-50%, -50%);
-            box-sizing: border-box;
+            border: 1px solid transparent; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center;
+            cursor: grab; z-index: 500; font-size: 4vmin; transform: translate(-50%, -50%);
         }
+        
+        /* Tijdens slepen/spawnen boven alles */
+        .dragging { z-index: 2000 !important; }
 
-        .spawning { z-index: 2000 !important; }
+        .color-input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
-        .color-input { 
-            position: absolute; opacity: 0; width: 100%; height: 100%; 
-            cursor: pointer; pointer-events: auto; 
-        }
-
-        @media print {
-            body, html { background-color: var(--theme-color) !important; }
-            #draggable-menu { display: none; }
+        @media print { 
+            #draggable-menu { display: none; } 
+            body { background-color: var(--theme-color) !important; }
         }
     </style>
 </head>
 <body>
 
-    <div class="universe-container" id="universe">
-        <svg id="dual-circle" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="50" id="night-path" fill="var(--night-color)" />
-            <path id="day-path" fill="var(--day-color)" />
-        </svg>
-
-        <div id="solar-lines-container"></div>
-        <div id="ticks-container"></div>
-        
-        <div class="celestial-body sun">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" stroke-width="2" /><line x1="12" y1="21" x2="12" y2="23" stroke-width="2" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke-width="2" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke-width="2" /><line x1="1" y1="12" x2="3" y2="12" stroke-width="2" /><line x1="21" y1="12" x2="23" y2="12" stroke-width="2" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke-width="2" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke-width="2" /></svg>
-        </div> 
-
-        <div id="moon-phase" class="moon-container"></div> 
+    <div class="zoom-wrapper">
+        <div class="universe-container" id="universe">
+            <svg id="dual-circle" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="50" id="night-path" fill="var(--night-color)" />
+                <path id="day-path" fill="var(--day-color)" />
+            </svg>
+            <div id="solar-lines-container"></div>
+            <div id="ticks-container"></div>
+            <div class="celestial-body sun">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" stroke-width="2" /><line x1="12" y1="21" x2="12" y2="23" stroke-width="2" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke-width="2" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke-width="2" /><line x1="1" y1="12" x2="3" y2="12" stroke-width="2" /><line x1="21" y1="12" x2="23" y2="12" stroke-width="2" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke-width="2" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke-width="2" /></svg>
+            </div> 
+            <div id="moon-phase" class="moon-container"></div> 
+        </div>
     </div>
 
     <div id="draggable-menu">
         <div id="print-btn" class="menu-item" onclick="window.print()"><i data-lucide="printer"></i></div>
+        
+        <div id="zoom-btn" class="menu-item">
+            <i data-lucide="search"></i>
+            <div id="zoom-box" class="expandable expand-down">
+                <div class="expandable-content">
+                    <input type="range" id="zoom-slider" min="0.5" max="3" step="0.1" value="1">
+                </div>
+            </div>
+        </div>
+
         <div id="palette-btn" class="menu-item">
             <i data-lucide="palette"></i>
             <div id="palette-box" class="expandable expand-down">
@@ -177,27 +190,19 @@
                 </div>
             </div>
         </div>
+
         <div id="add-btn" class="menu-item">
             <i data-lucide="plus"></i>
             <div id="expand-box" class="expandable expand-down">
-                <div class="expandable-content" id="sub-menu">
+                <div class="expandable-content">
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '⏰')" ontouchstart="initDragSpawn(event, '⏰')">⏰</div>
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '📻')" ontouchstart="initDragSpawn(event, '📻')">📻</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🚿')" ontouchstart="initDragSpawn(event, '🚿')">🚿</div>
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '🕌')" ontouchstart="initDragSpawn(event, '🕌')">🕌</div>
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '📖')" ontouchstart="initDragSpawn(event, '📖')">📖</div>
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '💪')" ontouchstart="initDragSpawn(event, '💪')">💪</div>
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '🍎')" ontouchstart="initDragSpawn(event, '🍎')">🍎</div>
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '☕')" ontouchstart="initDragSpawn(event, '☕')">☕</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🚌')" ontouchstart="initDragSpawn(event, '🚌')">🚌</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🌳')" ontouchstart="initDragSpawn(event, '🌳')">🌳</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '📈')" ontouchstart="initDragSpawn(event, '📈')">📈</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🥪')" ontouchstart="initDragSpawn(event, '🥪')">🥪</div>
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '🍽️')" ontouchstart="initDragSpawn(event, '🍽️')">🍽️</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '👨‍👩‍👧‍👦')" ontouchstart="initDragSpawn(event, '👨‍👩‍👧‍👦')">👨‍👩‍👧‍👦</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '✂️')" ontouchstart="initDragSpawn(event, '✂️')">✂️</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🧸')" ontouchstart="initDragSpawn(event, '🧸')">🧸</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '📺')" ontouchstart="initDragSpawn(event, '📺')">📺</div>
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '🛌')" ontouchstart="initDragSpawn(event, '🛌')">🛌</div>
                 </div>
             </div>
@@ -208,6 +213,112 @@
         lucide.createIcons();
 
         let currentSunriseAngle = 90, currentSunsetAngle = 270;
+        let activeElement = null, startX, startY, elemStartX, elemStartY, isDragging = false;
+        const menu = document.getElementById("draggable-menu");
+        const universe = document.getElementById("universe");
+
+        const zoomSlider = document.getElementById("zoom-slider");
+        zoomSlider.addEventListener('input', (e) => {
+            document.documentElement.style.setProperty('--zoom-level', e.target.value);
+            saveState();
+        });
+
+        const colorPicks = {'bg-color-pick': '--theme-color', 'icon-color-pick': '--icon-bg', 'day-color-pick': '--day-color', 'night-color-pick': '--night-color'};
+        Object.entries(colorPicks).forEach(([id, prop]) => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', (e) => {
+                document.documentElement.style.setProperty(prop, e.target.value);
+                updateColors(); saveState();
+            });
+        });
+
+        const btns = ["add-btn", "palette-btn", "zoom-btn"];
+        btns.forEach(id => {
+            document.getElementById(id).addEventListener('click', (e) => {
+                if (isDragging) return;
+                if (e.target.closest('.expandable-content')) return;
+                e.stopPropagation();
+                btns.forEach(b => { if(b !== id) document.getElementById(b).classList.remove('active'); });
+                document.getElementById(id).classList.toggle('active');
+            });
+        });
+
+        document.addEventListener('click', () => btns.forEach(b => document.getElementById(b).classList.remove('active')));
+
+        function updateMenuOrientation(x, y) {
+            const menuWidth = menu.offsetWidth;
+            const menuCenter = x + (menuWidth / 2);
+            menu.style.flexDirection = menuCenter > (window.innerWidth / 2) ? "row-reverse" : "row";
+            const expandBoxes = document.querySelectorAll(".expandable");
+            expandBoxes.forEach(box => {
+                if (y > window.innerHeight / 2) box.classList.replace("expand-down", "expand-up");
+                else box.classList.replace("expand-up", "expand-down");
+            });
+        }
+
+        function startDragging(e) {
+            const target = e.target.closest('#draggable-menu, .dropped-icon');
+            if (!target || e.target.closest('.expandable-content')) return;
+            isDragging = false; 
+            activeElement = target;
+            activeElement.classList.add('dragging'); // Spawnt/Sleept boven menu
+            
+            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
+            startX = touch.clientX; startY = touch.clientY;
+            if (activeElement === menu) { elemStartX = activeElement.offsetLeft; elemStartY = activeElement.offsetTop; }
+            else { 
+                const r = activeElement.getBoundingClientRect(), cr = universe.getBoundingClientRect(); 
+                elemStartX = ((r.left + r.width/2 - cr.left) / cr.width) * 100; 
+                elemStartY = ((r.top + r.height/2 - cr.top) / cr.height) * 100; 
+            }
+        }
+
+        function moveDragging(e) {
+            if (!activeElement) return;
+            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
+            const dx = touch.clientX - startX, dy = touch.clientY - startY;
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) isDragging = true;
+            if (activeElement === menu) {
+                let newX = elemStartX + dx, newY = elemStartY + dy;
+                menu.style.left = newX + "px"; menu.style.top = newY + "px";
+                updateMenuOrientation(newX, newY);
+            } else {
+                const cr = universe.getBoundingClientRect();
+                const zoom = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--zoom-level'));
+                activeElement.style.left = (elemStartX + (dx / (cr.width)) * 100 / zoom) + "%";
+                activeElement.style.top = (elemStartY + (dy / (cr.height)) * 100 / zoom) + "%";
+                updateIconBorder(activeElement);
+            }
+        }
+
+        function endDragging() { 
+            if (activeElement) {
+                activeElement.classList.remove('dragging'); // Valt terug naar laag onder menu
+                saveState();
+            }
+            activeElement = null; 
+        }
+
+        function initDragSpawn(e, emoji) {
+            e.preventDefault(); e.stopPropagation();
+            const div = document.createElement('div'); div.className = 'dropped-icon dragging'; div.innerText = emoji;
+            const cr = universe.getBoundingClientRect();
+            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
+            const spawnX = ((touch.clientX - cr.left) / cr.width) * 100;
+            const spawnY = ((touch.clientY - cr.top) / cr.height) * 100;
+            div.style.left = spawnX + "%"; div.style.top = spawnY + "%";
+            div.onclick = (ev) => { if(!isDragging) { div.remove(); saveState(); } ev.stopPropagation(); };
+            universe.appendChild(div);
+            updateIconBorder(div);
+            activeElement = div; isDragging = true; startX = touch.clientX; startY = touch.clientY; elemStartX = spawnX; elemStartY = spawnY;
+        }
+
+        document.addEventListener("mousedown", startDragging);
+        document.addEventListener("touchstart", startDragging, { passive: false });
+        document.addEventListener("mousemove", moveDragging);
+        document.addEventListener("touchmove", moveDragging, { passive: false });
+        document.addEventListener("mouseup", endDragging);
+        document.addEventListener("touchend", endDragging);
 
         function getContrastYIQ(hexcolor){
             if (!hexcolor) return 'black';
@@ -223,29 +334,21 @@
 
         function updateIconBorder(icon) {
             const rect = icon.getBoundingClientRect();
-            const containerRect = universe.getBoundingClientRect();
-            
-            const centerX = containerRect.left + containerRect.width / 2;
-            const centerY = containerRect.top + containerRect.height / 2;
-            const x = (rect.left + rect.width / 2) - centerX;
-            const y = (rect.top + rect.height / 2) - centerY;
-
-            let angle = Math.atan2(y, x) * (180 / Math.PI);
-            angle = (angle + 360 + 90) % 360;
-
+            const cr = universe.getBoundingClientRect();
+            const x = (rect.left + rect.width / 2) - (cr.left + cr.width / 2);
+            const y = (rect.top + rect.height / 2) - (cr.top + cr.height / 2);
+            let angle = (Math.atan2(y, x) * (180 / Math.PI) + 360 + 90) % 360;
             const dayColor = getComputedStyle(document.documentElement).getPropertyValue('--day-color').trim();
             const nightColor = getComputedStyle(document.documentElement).getPropertyValue('--night-color').trim();
             const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+            if (Math.sqrt(x*x + y*y) < cr.width / 2) {
+                icon.style.borderColor = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(dayColor) : getContrastYIQ(nightColor);
+            } else { icon.style.borderColor = getContrastYIQ(themeColor); }
+        }
 
-            const dist = Math.sqrt(x*x + y*y);
-            const radius = containerRect.width / 2;
-
-            if (dist < radius) {
-                const isDay = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle);
-                icon.style.borderColor = isDay ? getContrastYIQ(dayColor) : getContrastYIQ(nightColor);
-            } else {
-                icon.style.borderColor = getContrastYIQ(themeColor);
-            }
+        function isAngleBetween(t, s, e) {
+            s = (s % 360 + 360) % 360; e = (e % 360 + 360) % 360; t = (t % 360 + 360) % 360;
+            return s <= e ? (t >= s && t <= e) : (t >= s || t <= e);
         }
 
         function updateColors() {
@@ -254,136 +357,19 @@
             const day = getComputedStyle(root).getPropertyValue('--day-color').trim();
             const night = getComputedStyle(root).getPropertyValue('--night-color').trim();
             const iconBg = getComputedStyle(root).getPropertyValue('--icon-bg').trim();
-
             const bgContrast = getContrastYIQ(bg);
             root.style.setProperty('--celestial-contrast', bgContrast);
             root.style.setProperty('--text-contrast', getContrastYIQ(iconBg));
-
-            if (bgContrast === 'black') { 
-                root.style.setProperty('--menu-bg', 'rgba(0, 0, 0, 0.8)');
-                root.style.setProperty('--menu-border', 'rgba(0, 0, 0, 0.4)');
-            } else {
-                root.style.setProperty('--menu-bg', 'rgba(255, 255, 255, 0.2)');
-                root.style.setProperty('--menu-border', 'rgba(255, 255, 255, 0.3)');
-            }
+            root.style.setProperty('--menu-bg', bgContrast === 'black' ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.2)');
             
             document.querySelectorAll('.hour-tick').forEach(tick => {
                 const angle = parseFloat(tick.getAttribute('data-angle'));
-                const normalizedAngle = (angle % 360 + 360) % 360;
-                const isDay = isAngleBetween(normalizedAngle, currentSunriseAngle, currentSunsetAngle);
+                const isDay = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle);
                 const color = isDay ? getContrastYIQ(day) : getContrastYIQ(night);
                 tick.querySelector('.tick-mark').style.backgroundColor = color;
-                const num = tick.querySelector('.hour-number');
-                if(num) num.style.color = color;
+                if(tick.querySelector('.hour-number')) tick.querySelector('.hour-number').style.color = color;
             });
-
             document.querySelectorAll('.dropped-icon').forEach(updateIconBorder);
-        }
-
-        function isAngleBetween(target, start, end) {
-            const s = (start % 360 + 360) % 360, e = (end % 360 + 360) % 360, t = (target % 360 + 360) % 360;
-            return s <= e ? (t >= s && t <= e) : (t >= s || t <= e);
-        }
-
-        const colorPicks = {'bg-color-pick': '--theme-color', 'icon-color-pick': '--icon-bg', 'day-color-pick': '--day-color', 'night-color-pick': '--night-color'};
-        Object.entries(colorPicks).forEach(([id, prop]) => {
-            const el = document.getElementById(id);
-            el.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
-            el.addEventListener('mousedown', (e) => e.stopPropagation());
-            
-            el.addEventListener('input', (e) => {
-                document.documentElement.style.setProperty(prop, e.target.value);
-                updateColors(); saveState();
-            });
-        });
-
-        let activeElement = null, startX, startY, elemStartX, elemStartY, isDragging = false;
-        const menu = document.getElementById("draggable-menu");
-        const universe = document.getElementById("universe");
-
-        // Gecorrigeerde Menu Logica voor mobiele color pickers
-        document.getElementById("add-btn").addEventListener('click', (e) => { 
-            if (isDragging) return;
-            e.stopPropagation(); 
-            document.getElementById("add-btn").classList.toggle('active'); 
-            document.getElementById("palette-btn").classList.remove('active'); 
-        });
-
-        document.getElementById("palette-btn").addEventListener('click', (e) => { 
-            if (isDragging) return;
-            if (!e.target.closest('.expandable-content')) {
-                e.stopPropagation(); 
-                document.getElementById("palette-btn").classList.toggle('active'); 
-                document.getElementById("add-btn").classList.remove('active'); 
-            }
-        });
-
-        document.addEventListener('click', (e) => { 
-            if (!e.target.closest('#draggable-menu')) {
-                document.getElementById("add-btn").classList.remove('active'); 
-                document.getElementById("palette-btn").classList.remove('active'); 
-            }
-        });
-
-        function startDragging(e) {
-            const target = e.target.closest('#draggable-menu, .dropped-icon');
-            if (!target || e.target.closest('.expandable-content')) return;
-            isDragging = false; activeElement = target;
-            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
-            startX = touch.clientX; startY = touch.clientY;
-            if (activeElement === menu) { elemStartX = activeElement.offsetLeft; elemStartY = activeElement.offsetTop; }
-            else { const r = activeElement.getBoundingClientRect(), cr = universe.getBoundingClientRect(); elemStartX = ((r.left + r.width/2 - cr.left) / cr.width) * 100; elemStartY = ((r.top + r.height/2 - cr.top) / cr.height) * 100; }
-        }
-
-        function initDragSpawn(e, emoji) {
-            e.preventDefault(); e.stopPropagation();
-            const div = document.createElement('div'); div.className = 'dropped-icon spawning'; div.innerText = emoji;
-            const cr = universe.getBoundingClientRect();
-            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
-            const spawnX = ((touch.clientX - cr.left) / cr.width) * 100;
-            const spawnY = ((touch.clientY - cr.top) / cr.height) * 100;
-            div.style.left = spawnX + "%"; div.style.top = spawnY + "%";
-            div.onclick = (ev) => { if(!isDragging) { div.remove(); saveState(); } ev.stopPropagation(); };
-            universe.appendChild(div);
-            updateIconBorder(div);
-            activeElement = div; isDragging = true;
-            startX = touch.clientX; startY = touch.clientY; elemStartX = spawnX; elemStartY = spawnY;
-        }
-
-        function moveDragging(e) {
-            if (!activeElement) return;
-            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
-            const dx = touch.clientX - startX, dy = touch.clientY - startY;
-            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) isDragging = true;
-            if (activeElement === menu) {
-                menu.style.left = (elemStartX + dx) + "px"; menu.style.top = (elemStartY + dy) + "px";
-                updateMenuOrientation(elemStartX + dx, elemStartY + dy);
-            } else {
-                const cr = universe.getBoundingClientRect();
-                activeElement.style.left = (elemStartX + (dx / cr.width) * 100) + "%";
-                activeElement.style.top = (elemStartY + (dy / cr.height) * 100) + "%";
-                updateIconBorder(activeElement);
-            }
-        }
-
-        function updateMenuOrientation(x, y) {
-            menu.style.flexDirection = x < window.innerWidth / 2 ? "row-reverse" : "row";
-            [document.getElementById("expand-box"), document.getElementById("palette-box")].forEach(box => {
-                if (y > window.innerHeight / 2) box.classList.replace("expand-down", "expand-up");
-                else box.classList.replace("expand-up", "expand-down");
-            });
-        }
-
-        document.addEventListener("mousedown", startDragging);
-        document.addEventListener("touchstart", startDragging, { passive: false });
-        document.addEventListener("mousemove", moveDragging);
-        document.addEventListener("touchmove", moveDragging, { passive: false });
-        document.addEventListener("mouseup", endDragging);
-        document.addEventListener("touchend", endDragging);
-
-        function endDragging() {
-            if (activeElement) { activeElement.classList.remove('spawning'); saveState(); }
-            activeElement = null;
         }
 
         function drawClock(offset = 0) {
@@ -393,7 +379,6 @@
                 const wrapper = document.createElement('div'); wrapper.className = 'hour-tick';
                 wrapper.setAttribute('data-angle', angle);
                 if (i % 6 === 0) {
-                    wrapper.classList.add('tick-12');
                     const num = document.createElement('div'); num.className = 'hour-number';
                     num.innerText = i === 0 ? "24" : (i < 10 ? "0"+i : i);
                     num.style.transform = `translateX(-50%) rotate(${-angle}deg)`;
@@ -417,13 +402,10 @@
                         currentSunriseAngle = (sunRise.getHours() + sunRise.getMinutes()/60 - 12) * 15 + offset;
                         currentSunsetAngle = (sunSet.getHours() + sunSet.getMinutes()/60 - 12) * 15 + offset;
                         drawClock(offset);
-                        const polarToCartesian = (angleDeg) => {
-                            const angleRad = (angleDeg * Math.PI) / 180.0;
-                            return { x: 50 + 50 * Math.cos(angleRad), y: 50 + 50 * Math.sin(angleRad) };
-                        };
+                        const polarToCartesian = (a) => ({ x: 50 + 50 * Math.cos(a * Math.PI / 180), y: 50 + 50 * Math.sin(a * Math.PI / 180) });
                         const start = polarToCartesian(currentSunriseAngle), end = polarToCartesian(currentSunsetAngle);
-                        const largeArcFlag = (currentSunsetAngle - currentSunriseAngle + 360) % 360 <= 180 ? "0" : "1";
-                        document.getElementById("day-path").setAttribute("d", ["M", 50, 50, "L", start.x, start.y, "A", 50, 50, 0, largeArcFlag, 1, end.x, end.y, "Z"].join(" "));
+                        const largeArc = (currentSunsetAngle - currentSunriseAngle + 360) % 360 <= 180 ? "0" : "1";
+                        document.getElementById("day-path").setAttribute("d", `M 50 50 L ${start.x} ${start.y} A 50 50 0 ${largeArc} 1 ${end.x} ${end.y} Z`);
                         const slc = document.getElementById("solar-lines-container"); slc.innerHTML = '';
                         [currentSunriseAngle, currentSunsetAngle].forEach(ang => {
                             const line = document.createElement('div'); line.className = 'solar-line';
@@ -443,6 +425,7 @@
             localStorage.setItem('iconBg', getComputedStyle(document.documentElement).getPropertyValue('--icon-bg'));
             localStorage.setItem('dayColor', getComputedStyle(document.documentElement).getPropertyValue('--day-color'));
             localStorage.setItem('nightColor', getComputedStyle(document.documentElement).getPropertyValue('--night-color'));
+            localStorage.setItem('zoomLevel', zoomSlider.value);
         }
 
         function loadState() {
@@ -450,9 +433,9 @@
             const ib = localStorage.getItem('iconBg'); if (ib) document.documentElement.style.setProperty('--icon-bg', ib);
             const dc = localStorage.getItem('dayColor'); if (dc) document.documentElement.style.setProperty('--day-color', dc);
             const nc = localStorage.getItem('nightColor'); if (nc) document.documentElement.style.setProperty('--night-color', nc);
+            const zl = localStorage.getItem('zoomLevel'); if (zl) { zoomSlider.value = zl; document.documentElement.style.setProperty('--zoom-level', zl); }
             
-            const savedIcons = JSON.parse(localStorage.getItem('universeIcons') || "[]");
-            savedIcons.forEach(d => {
+            JSON.parse(localStorage.getItem('universeIcons') || "[]").forEach(d => {
                 const div = document.createElement('div'); div.className = 'dropped-icon'; div.innerText = d.text;
                 div.style.left = d.left; div.style.top = d.top;
                 div.onclick = (e) => { if(!isDragging) { div.remove(); saveState(); } e.stopPropagation(); };
@@ -462,11 +445,8 @@
         }
         
         loadState();
-        
         (function setMoonPhase() {
-            const moonEl = document.getElementById("moon-phase");
-            const cycle = 29.53, now = new Date(), ref = new Date('2024-01-11');
-            const pos = ((now - ref) / (1000 * 60 * 60 * 24)) % cycle;
+            const moonEl = document.getElementById("moon-phase"), cycle = 29.53, now = new Date(), ref = new Date('2024-01-11'), pos = ((now - ref) / (864e5)) % cycle;
             if (pos < 2 || pos > 27.5) moonEl.classList.add('moon-new');
             else if (pos < 13) moonEl.classList.add('moon-first-quarter');
             else if (pos < 17) moonEl.classList.add('moon-full');

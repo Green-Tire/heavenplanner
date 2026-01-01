@@ -34,22 +34,32 @@
         }
 
         .zoom-wrapper {
+            position: relative;
             display: flex; justify-content: center; align-items: center;
             transform: scale(var(--zoom-level));
             transition: transform 0.2s ease-out;
             width: 100%; height: 100%;
+            z-index: 10;
         }
+
+        .zoom-wrapper.top-layer { z-index: 2000 !important; }
 
         .universe-container {
             position: relative;
-            width: 85vmin; height: 85vmin; /* Aangepast naar 85vmin */
+            width: 85vmin; height: 85vmin;
             display: flex; justify-content: center; align-items: center;
             flex-shrink: 0;
             z-index: 1;
         }
 
-        /* De fix voor het menu-overlapping probleem */
-        .universe-container.top-layer { z-index: 2000 !important; }
+        #stickers-layer {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 85vmin; height: 85vmin;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 30;
+        }
 
         #dual-circle {
             position: absolute; width: 100%; height: 100%;
@@ -86,18 +96,16 @@
         .tick-12 .tick-mark { width: 6px; height: 8%; }
         .hour-number { position: absolute; top: 6%; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 3.5vmin; }
 
-        .solar-line {
-            position: absolute; top: 0; left: 50%; width: var(--line-thickness); height: 50%;
-            background-color: rgba(128,128,128,0.5); transform-origin: bottom center; z-index: 2;
-        }
-
         #draggable-menu {
             position: absolute; top: 20px; left: 20px;
-            display: flex; gap: 10px; padding: 8px 12px;
+            display: flex; flex-direction: row;
+            gap: 10px; padding: 8px 12px;
             background: var(--menu-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             border: 1px solid var(--menu-border); border-radius: 40px; cursor: grab; 
-            z-index: 1000; 
+            z-index: 5000; 
         }
+
+        #draggable-menu.mirrored { flex-direction: row-reverse; }
 
         .menu-item {
             position: relative; width: 40px; height: 40px;
@@ -106,9 +114,12 @@
             color: var(--menu-text); cursor: pointer;
         }
 
-        .expandable { display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 1100; }
+        .expandable { 
+            display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5100; 
+        }
         .expand-down { top: 100%; padding-top: 10px; }
         .expand-up { bottom: 100%; padding-bottom: 10px; }
+        
         .menu-item.active .expandable { display: block; }
 
         .expandable-content {
@@ -131,11 +142,11 @@
             background-color: var(--icon-bg); color: var(--text-contrast); 
             border: 1px solid transparent; border-radius: 50%; 
             display: flex; justify-content: center; align-items: center;
-            cursor: grab; z-index: 500; font-size: 4vmin; transform: translate(-50%, -50%);
+            cursor: grab; pointer-events: auto; font-size: 4vmin; transform: translate(-50%, -50%);
+            z-index: 100;
         }
         
-        .dragging { z-index: 3000 !important; }
-
+        .dragging { z-index: 6000 !important; }
         .color-input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
         @media print { 
@@ -146,7 +157,7 @@
 </head>
 <body>
 
-    <div class="zoom-wrapper">
+    <div class="zoom-wrapper" id="zoom-wrapper">
         <div class="universe-container" id="universe">
             <svg id="dual-circle" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="50" id="night-path" fill="var(--night-color)" />
@@ -159,34 +170,11 @@
             </div> 
             <div id="moon-phase" class="moon-container"></div> 
         </div>
+        <div id="stickers-layer"></div>
     </div>
 
     <div id="draggable-menu">
-        <div id="print-btn" class="menu-item" onclick="window.print()"><i data-lucide="printer"></i></div>
-        
-        <div id="zoom-btn" class="menu-item">
-            <i data-lucide="search"></i>
-            <div id="zoom-box" class="expandable expand-down">
-                <div class="expandable-content">
-                    <input type="range" id="zoom-slider" min="0.5" max="3" step="0.1" value="1">
-                </div>
-            </div>
-        </div>
-
-        <div id="palette-btn" class="menu-item">
-            <i data-lucide="palette"></i>
-            <div id="palette-box" class="expandable expand-down">
-                <div class="expandable-content">
-                    <label class="sub-icon"><i data-lucide="brush"></i><input type="color" class="color-input" id="bg-color-pick"></label>
-                    <label class="sub-icon"><i data-lucide="zap"></i><input type="color" class="color-input" id="icon-color-pick"></label>
-                    <label class="sub-icon"><i data-lucide="sun"></i><input type="color" class="color-input" id="day-color-pick"></label>
-                    <label class="sub-icon"><i data-lucide="moon"></i><input type="color" class="color-input" id="night-color-pick"></label>
-                </div>
-            </div>
-        </div>
-
-        <div id="add-btn" class="menu-item">
-            <i data-lucide="plus"></i>
+        <div id="add-btn" class="menu-item"><i data-lucide="plus"></i>
             <div id="expand-box" class="expandable expand-down">
                 <div class="expandable-content">
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '⏰')" ontouchstart="initDragSpawn(event, '⏰')">⏰</div>
@@ -210,34 +198,73 @@
                 </div>
             </div>
         </div>
+        <div id="palette-btn" class="menu-item"><i data-lucide="palette"></i>
+            <div id="palette-box" class="expandable expand-down">
+                <div class="expandable-content">
+                    <label class="sub-icon"><i data-lucide="brush"></i><input type="color" class="color-input" id="bg-color-pick"></label>
+                    <label class="sub-icon"><i data-lucide="zap"></i><input type="color" class="color-input" id="icon-color-pick"></label>
+                    <label class="sub-icon"><i data-lucide="sun"></i><input type="color" class="color-input" id="day-color-pick"></label>
+                    <label class="sub-icon"><i data-lucide="moon"></i><input type="color" class="color-input" id="night-color-pick"></label>
+                    <div class="sub-icon" onclick="resetColors()"><i data-lucide="redo-2"></i></div>
+                </div>
+            </div>
+        </div>
+        <div id="zoom-btn" class="menu-item"><i data-lucide="search"></i>
+            <div id="zoom-box" class="expandable expand-down">
+                <div class="expandable-content">
+                    <input type="range" id="zoom-slider" min="0.5" max="3" step="0.1" value="1">
+                </div>
+            </div>
+        </div>
+        <div id="print-btn" class="menu-item" onclick="window.print()"><i data-lucide="printer"></i></div>
     </div>
 
     <script>
         lucide.createIcons();
-        let currentSunriseAngle = 90, currentSunsetAngle = 270, activeElement = null, startX, startY, elemStartX, elemStartY, isDragging = false;
+        let currentSunriseAngle = 90, currentSunsetAngle = 270, activeElement = null, startX, startY, elemStartX, elemStartY, isDragging = false, isSpawning = false;
         const menu = document.getElementById("draggable-menu");
         const universe = document.getElementById("universe");
+        const zoomWrapper = document.getElementById("zoom-wrapper");
+        const stickersLayer = document.getElementById("stickers-layer");
 
-        // FIX 1: MOBIELE KLEUREN PICKER LOGICA
+        function updateMenuDynamics() {
+            const menuRect = menu.getBoundingClientRect();
+            const screenHeight = window.innerHeight;
+            const screenWidth = window.innerWidth;
+            const expandables = document.querySelectorAll('.expandable');
+            const menuCenter = menuRect.left + (menuRect.width / 2);
+
+            if (menuRect.top > screenHeight / 2) {
+                expandables.forEach(el => { el.classList.remove('expand-down'); el.classList.add('expand-up'); });
+            } else {
+                expandables.forEach(el => { el.classList.remove('expand-up'); el.classList.add('expand-down'); });
+            }
+
+            if (menuCenter > screenWidth / 2) { menu.classList.add('mirrored'); } 
+            else { menu.classList.remove('mirrored'); }
+        }
+
         const colorPicks = {'bg-color-pick': '--theme-color', 'icon-color-pick': '--icon-bg', 'day-color-pick': '--day-color', 'night-color-pick': '--night-color'};
         Object.entries(colorPicks).forEach(([id, prop]) => {
             const el = document.getElementById(id);
-            el.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
-            el.addEventListener('mousedown', (e) => e.stopPropagation());
             el.addEventListener('input', (e) => {
                 document.documentElement.style.setProperty(prop, e.target.value);
                 updateColors(); saveState();
             });
         });
 
-        // FIX 2: VERBETERDE MENU LOGICA (KLAPT NIET DICHT BIJ KLEUR KIEZEN)
+        function resetColors() {
+            const defaults = {'--theme-color': '#000000', '--icon-bg': '#000000', '--day-color': 'rgb(204, 186, 108)', '--night-color': 'rgb(103, 126, 161)'};
+            Object.entries(defaults).forEach(([prop, val]) => document.documentElement.style.setProperty(prop, val));
+            updateColors(); saveState();
+        }
+
         const btns = ["add-btn", "palette-btn", "zoom-btn"];
         btns.forEach(id => {
             document.getElementById(id).addEventListener('click', (e) => {
                 if (isDragging) return;
-                // Alleen toggelen als we NIET op de submenu content klikken
                 if (!e.target.closest('.expandable-content')) {
-                    e.stopPropagation();
+                    updateMenuDynamics(); 
                     btns.forEach(b => { if(b !== id) document.getElementById(b).classList.remove('active'); });
                     document.getElementById(id).classList.toggle('active');
                 }
@@ -245,9 +272,7 @@
         });
 
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('#draggable-menu')) {
-                btns.forEach(b => document.getElementById(b).classList.remove('active'));
-            }
+            if (!e.target.closest('#draggable-menu')) btns.forEach(b => document.getElementById(b).classList.remove('active'));
         });
 
         const zoomSlider = document.getElementById("zoom-slider");
@@ -259,18 +284,19 @@
         function startDragging(e) {
             const target = e.target.closest('#draggable-menu, .dropped-icon');
             if (!target || e.target.closest('.expandable-content')) return;
-            isDragging = false; 
+            isDragging = false; isSpawning = false;
             activeElement = target;
             activeElement.classList.add('dragging'); 
             
-            // FIX 3: CONTAINER NAAR VOORGROND TIJDENS SLEPEN
-            if (activeElement !== menu) universe.classList.add('top-layer');
+            if (activeElement !== menu) zoomWrapper.classList.add('top-layer');
             
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
             startX = touch.clientX; startY = touch.clientY;
-            if (activeElement === menu) { elemStartX = activeElement.offsetLeft; elemStartY = activeElement.offsetTop; }
-            else { 
-                const r = activeElement.getBoundingClientRect(), cr = universe.getBoundingClientRect(); 
+            
+            if (activeElement === menu) {
+                elemStartX = activeElement.offsetLeft; elemStartY = activeElement.offsetTop;
+            } else { 
+                const r = activeElement.getBoundingClientRect(), cr = stickersLayer.getBoundingClientRect(); 
                 elemStartX = ((r.left + r.width/2 - cr.left) / cr.width) * 100; 
                 elemStartY = ((r.top + r.height/2 - cr.top) / cr.height) * 100; 
             }
@@ -281,40 +307,67 @@
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
             const dx = touch.clientX - startX, dy = touch.clientY - startY;
             if (Math.abs(dx) > 5 || Math.abs(dy) > 5) isDragging = true;
+            
             if (activeElement === menu) {
-                let newX = elemStartX + dx, newY = elemStartY + dy;
-                menu.style.left = newX + "px"; menu.style.top = newY + "px";
+                menu.style.left = (elemStartX + dx) + "px"; 
+                menu.style.top = (elemStartY + dy) + "px";
+                updateMenuDynamics();
+            } else if (isSpawning) {
+                activeElement.style.left = touch.clientX + "px";
+                activeElement.style.top = touch.clientY + "px";
             } else {
-                const cr = universe.getBoundingClientRect();
-                const zoom = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--zoom-level'));
-                activeElement.style.left = (elemStartX + (dx / (cr.width)) * 100 / zoom) + "%";
-                activeElement.style.top = (elemStartY + (dy / (cr.height)) * 100 / zoom) + "%";
+                const cr = stickersLayer.getBoundingClientRect();
+                activeElement.style.left = (elemStartX + (dx / cr.width) * 100) + "%";
+                activeElement.style.top = (elemStartY + (dy / cr.height) * 100) + "%";
                 updateIconBorder(activeElement);
             }
         }
 
         function endDragging() { 
             if (activeElement) {
+                if (isSpawning) {
+                    const cr = stickersLayer.getBoundingClientRect();
+                    const rect = activeElement.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+
+                    const finalX = ((centerX - cr.left) / cr.width) * 100;
+                    const finalY = ((centerY - cr.top) / cr.height) * 100;
+                    
+                    activeElement.style.width = "9%";
+                    activeElement.style.height = "9%";
+                    activeElement.style.left = finalX + "%";
+                    activeElement.style.top = finalY + "%";
+                    
+                    stickersLayer.appendChild(activeElement);
+                    updateIconBorder(activeElement);
+                }
                 activeElement.classList.remove('dragging'); 
-                universe.classList.remove('top-layer'); // Z-index weer terug naar normaal
+                zoomWrapper.classList.remove('top-layer');
                 saveState();
             }
-            activeElement = null; 
+            activeElement = null; isSpawning = false;
         }
 
         function initDragSpawn(e, emoji) {
             e.preventDefault(); e.stopPropagation();
-            const div = document.createElement('div'); div.className = 'dropped-icon dragging'; div.innerText = emoji;
-            universe.appendChild(div);
-            universe.classList.add('top-layer');
-            const cr = universe.getBoundingClientRect();
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
-            const spawnX = ((touch.clientX - cr.left) / cr.width) * 100;
-            const spawnY = ((touch.clientY - cr.top) / cr.height) * 100;
-            div.style.left = spawnX + "%"; div.style.top = spawnY + "%";
+            const uniRect = universe.getBoundingClientRect();
+            const pixelSize = uniRect.width * 0.09;
+
+            const div = document.createElement('div'); 
+            div.className = 'dropped-icon dragging'; 
+            div.innerText = emoji;
+            div.style.width = pixelSize + "px";
+            div.style.height = pixelSize + "px";
+            div.style.left = touch.clientX + "px";
+            div.style.top = touch.clientY + "px";
+            
+            document.body.appendChild(div);
             div.onclick = (ev) => { if(!isDragging) { div.remove(); saveState(); } ev.stopPropagation(); };
-            updateIconBorder(div);
-            activeElement = div; isDragging = true; startX = touch.clientX; startY = touch.clientY; elemStartX = spawnX; elemStartY = spawnY;
+            
+            activeElement = div; isDragging = true; isSpawning = true;
+            startX = touch.clientX; startY = touch.clientY;
         }
 
         document.addEventListener("mousedown", startDragging);
@@ -368,8 +421,7 @@
             
             document.querySelectorAll('.hour-tick').forEach(tick => {
                 const angle = parseFloat(tick.getAttribute('data-angle'));
-                const isDay = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle);
-                const color = isDay ? getContrastYIQ(day) : getContrastYIQ(night);
+                const color = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(day) : getContrastYIQ(night);
                 tick.querySelector('.tick-mark').style.backgroundColor = color;
                 if(tick.querySelector('.hour-number')) tick.querySelector('.hour-number').style.color = color;
             });
@@ -417,13 +469,14 @@
         }
 
         function saveState() {
-            const icons = [...document.querySelectorAll('.dropped-icon')].map(i => ({text: i.innerText, left: i.style.left, top: i.style.top}));
+            const icons = [...document.querySelectorAll('#stickers-layer .dropped-icon')].map(i => ({text: i.innerText, left: i.style.left, top: i.style.top}));
             localStorage.setItem('universeIcons', JSON.stringify(icons));
             localStorage.setItem('themeColor', getComputedStyle(document.documentElement).getPropertyValue('--theme-color'));
             localStorage.setItem('iconBg', getComputedStyle(document.documentElement).getPropertyValue('--icon-bg'));
             localStorage.setItem('dayColor', getComputedStyle(document.documentElement).getPropertyValue('--day-color'));
             localStorage.setItem('nightColor', getComputedStyle(document.documentElement).getPropertyValue('--night-color'));
             localStorage.setItem('zoomLevel', zoomSlider.value);
+            localStorage.setItem('menuPos', JSON.stringify({left: menu.style.left, top: menu.style.top}));
         }
 
         function loadState() {
@@ -432,23 +485,28 @@
             const dc = localStorage.getItem('dayColor'); if (dc) document.documentElement.style.setProperty('--day-color', dc);
             const nc = localStorage.getItem('nightColor'); if (nc) document.documentElement.style.setProperty('--night-color', nc);
             const zl = localStorage.getItem('zoomLevel'); if (zl) { zoomSlider.value = zl; document.documentElement.style.setProperty('--zoom-level', zl); }
+            const mp = JSON.parse(localStorage.getItem('menuPos')); if (mp) { menu.style.left = mp.left; menu.style.top = mp.top; }
+            
             JSON.parse(localStorage.getItem('universeIcons') || "[]").forEach(d => {
                 const div = document.createElement('div'); div.className = 'dropped-icon'; div.innerText = d.text;
                 div.style.left = d.left; div.style.top = d.top;
                 div.onclick = (e) => { if(!isDragging) { div.remove(); saveState(); } e.stopPropagation(); };
-                universe.appendChild(div);
+                stickersLayer.appendChild(div);
             });
-            getSolarData();
+            getSolarData(); updateMenuDynamics(); 
+        }
+
+        function setMoonPhase() {
+            const moonEl = document.getElementById("moon-phase");
+            const ageDays = (((new Date().getTime() - new Date('2000-01-06T18:14:00Z').getTime()) / 1000) % 2551443) / 86400;
+            moonEl.classList.remove('moon-new', 'moon-first-quarter', 'moon-full', 'moon-last-quarter');
+            if (ageDays < 1.845 || ageDays > 27.68) moonEl.classList.add('moon-new');
+            else if (ageDays < 9.22) moonEl.classList.add('moon-first-quarter');
+            else if (ageDays < 16.61) moonEl.classList.add('moon-full');
+            else moonEl.classList.add('moon-last-quarter');
         }
         
-        loadState();
-        (function setMoonPhase() {
-            const moonEl = document.getElementById("moon-phase"), cycle = 29.53, now = new Date(), ref = new Date('2024-01-11'), pos = ((now - ref) / (864e5)) % cycle;
-            if (pos < 2 || pos > 27.5) moonEl.classList.add('moon-new');
-            else if (pos < 13) moonEl.classList.add('moon-first-quarter');
-            else if (pos < 17) moonEl.classList.add('moon-full');
-            else moonEl.classList.add('moon-last-quarter');
-        })();
+        loadState(); setMoonPhase(); setInterval(setMoonPhase, 3600000);
     </script>
 </body>
 </html>

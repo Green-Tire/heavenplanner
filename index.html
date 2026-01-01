@@ -15,7 +15,12 @@
             --night-color: rgb(103, 126, 161);
             --line-thickness: 2px;
             --text-contrast: white;
-            --celestial-contrast: white;
+            --celestial-contrast: white; 
+            
+            --menu-bg: rgba(255, 255, 255, 0.2);
+            --menu-border: rgba(255, 255, 255, 0.3);
+            --menu-item-bg: rgba(255, 255, 255, 0.15);
+            --menu-text: white;
         }
         
         body, html {
@@ -38,6 +43,10 @@
             position: absolute; width: 100%; height: 100%;
             transform: rotate(-90deg);
             z-index: 0;
+            border-radius: 50%;
+            box-sizing: border-box;
+            border: 1px solid var(--celestial-contrast);
+            transition: border-color 0.3s;
         }
 
         .celestial-body {
@@ -45,15 +54,16 @@
             display: flex; justify-content: center; align-items: center;
         }
         .sun { top: -13vmin; width: 11vmin; height: 11vmin; }
-        .sun svg { width: 100%; height: 100%; fill: var(--celestial-contrast); }
-        .sun svg line { stroke: var(--celestial-contrast); }
+        .sun svg { width: 100%; height: 100%; fill: var(--celestial-contrast); transition: fill 0.3s; }
+        .sun svg line { stroke: var(--celestial-contrast); transition: stroke 0.3s; }
         
-        /* Maan geforceerd op wit/zwart voor live standen */
         .moon-container {
             position: absolute; bottom: -11vmin; width: 7.5vmin; height: 7.5vmin;
-            border-radius: 50%; border: 2px solid white !important;
+            border-radius: 50%; 
+            border: 2px solid var(--celestial-contrast) !important;
             left: 50%; transform: translateX(-50%);
             z-index: 5; background-color: white !important; overflow: hidden;
+            transition: border-color 0.3s;
         }
 
         .moon-container::after {
@@ -66,35 +76,34 @@
 
         #ticks-container, #solar-lines-container { position: absolute; width: 100%; height: 100%; z-index: 1; }
         .hour-tick { position: absolute; top: 0; left: 50%; height: 100%; width: 2px; pointer-events: none; }
-        
-        /* Contrast wordt nu via JS per tick gezet */
         .tick-mark { width: 2px; height: 4%; background-color: black; margin: 0 auto; }
         .tick-12 .tick-mark { width: 6px; height: 8%; }
-
-        .hour-number {
-            position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
-            font-weight: bold; font-size: 3.2vmin;
-        }
+        .hour-number { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 3.2vmin; }
 
         .solar-line {
             position: absolute; top: 0; left: 50%; width: var(--line-thickness); height: 50%;
-            background-color: rgba(0,0,0,0.5); transform-origin: bottom center; z-index: 2;
+            background-color: rgba(128,128,128,0.5); transform-origin: bottom center; z-index: 2;
         }
 
         #draggable-menu {
             position: absolute; top: 20px; left: 20px;
-            display: flex; gap: 10px; padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 40px; cursor: grab; z-index: 1000;
+            display: flex; 
+            flex-direction: row-reverse; 
+            gap: 10px; padding: 8px 12px;
+            background: var(--menu-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--menu-border); border-radius: 40px; cursor: grab; 
+            z-index: 1000;
+            transition: background 0.3s, border 0.3s;
         }
 
         .menu-item {
             position: relative; width: 40px; height: 40px;
-            background: rgba(255, 255, 255, 0.15); border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; color: white; cursor: pointer;
+            background: var(--menu-item-bg); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; 
+            color: var(--menu-text); cursor: pointer;
         }
 
-        .lucide { width: 20px; height: 20px; stroke: white; stroke-width: 1.5px; }
+        .lucide { width: 20px; height: 20px; stroke: currentColor; stroke-width: 1.8px; }
 
         .expandable { display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 10; }
         .expand-down { top: 100%; padding-top: 10px; }
@@ -117,10 +126,14 @@
 
         .dropped-icon {
             position: absolute; width: 7vmin; height: 7vmin;
-            background-color: var(--icon-bg); color: var(--text-contrast); border: 1px solid var(--text-contrast); 
+            background-color: var(--icon-bg); color: var(--text-contrast); 
+            border: 2px solid transparent; 
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
             cursor: grab; z-index: 500; font-size: 3.5vmin; transform: translate(-50%, -50%);
+            box-sizing: border-box;
         }
+
+        .spawning { z-index: 2000 !important; }
 
         .color-input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
@@ -150,7 +163,6 @@
 
     <div id="draggable-menu">
         <div id="print-btn" class="menu-item" onclick="window.print()"><i data-lucide="printer"></i></div>
-        
         <div id="palette-btn" class="menu-item">
             <i data-lucide="palette"></i>
             <div id="palette-box" class="expandable expand-down">
@@ -162,20 +174,19 @@
                 </div>
             </div>
         </div>
-
         <div id="add-btn" class="menu-item">
             <i data-lucide="plus"></i>
             <div id="expand-box" class="expandable expand-down">
                 <div class="expandable-content" id="sub-menu">
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '⏰')">⏰</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '📻')">📻</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🕌')">🕌</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '📖')">📖</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '💪')">💪</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🍎')">🍎</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '☕')">☕</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🍽️')">🍽️</div>
-                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🛌')">🛌</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '⏰')" ontouchstart="initDragSpawn(event, '⏰')">⏰</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '📻')" ontouchstart="initDragSpawn(event, '📻')">📻</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🕌')" ontouchstart="initDragSpawn(event, '🕌')">🕌</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '📖')" ontouchstart="initDragSpawn(event, '📖')">📖</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '💪')" ontouchstart="initDragSpawn(event, '💪')">💪</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🍎')" ontouchstart="initDragSpawn(event, '🍎')">🍎</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '☕')" ontouchstart="initDragSpawn(event, '☕')">☕</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🍽️')" ontouchstart="initDragSpawn(event, '🍽️')">🍽️</div>
+                    <div class="sub-icon" onmousedown="initDragSpawn(event, '🛌')" ontouchstart="initDragSpawn(event, '🛌')">🛌</div>
                 </div>
             </div>
         </div>
@@ -184,7 +195,7 @@
     <script>
         lucide.createIcons();
 
-        let currentSunriseAngle = 90, currentSunsetAngle = 270, currentOffset = 0;
+        let currentSunriseAngle = 90, currentSunsetAngle = 270;
 
         function getContrastYIQ(hexcolor){
             if (!hexcolor) return 'black';
@@ -198,6 +209,33 @@
             return (((r*299)+(g*587)+(b*114))/1000 >= 128) ? 'black' : 'white';
         }
 
+        function updateIconBorder(icon) {
+            const rect = icon.getBoundingClientRect();
+            const containerRect = universe.getBoundingClientRect();
+            
+            const centerX = containerRect.left + containerRect.width / 2;
+            const centerY = containerRect.top + containerRect.height / 2;
+            const x = (rect.left + rect.width / 2) - centerX;
+            const y = (rect.top + rect.height / 2) - centerY;
+
+            let angle = Math.atan2(y, x) * (180 / Math.PI);
+            angle = (angle + 360 + 90) % 360; // Correctie naar klok-logica
+
+            const dayColor = getComputedStyle(document.documentElement).getPropertyValue('--day-color').trim();
+            const nightColor = getComputedStyle(document.documentElement).getPropertyValue('--night-color').trim();
+            const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+
+            const dist = Math.sqrt(x*x + y*y);
+            const radius = containerRect.width / 2;
+
+            if (dist < radius) {
+                const isDay = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle);
+                icon.style.borderColor = isDay ? getContrastYIQ(dayColor) : getContrastYIQ(nightColor);
+            } else {
+                icon.style.borderColor = getContrastYIQ(themeColor);
+            }
+        }
+
         function updateColors() {
             const root = document.documentElement;
             const bg = getComputedStyle(root).getPropertyValue('--theme-color').trim();
@@ -205,74 +243,118 @@
             const night = getComputedStyle(root).getPropertyValue('--night-color').trim();
             const iconBg = getComputedStyle(root).getPropertyValue('--icon-bg').trim();
 
-            root.style.setProperty('--celestial-contrast', getContrastYIQ(bg));
+            const bgContrast = getContrastYIQ(bg);
+            root.style.setProperty('--celestial-contrast', bgContrast);
             root.style.setProperty('--text-contrast', getContrastYIQ(iconBg));
+
+            if (bgContrast === 'black') { 
+                root.style.setProperty('--menu-bg', 'rgba(0, 0, 0, 0.8)');
+                root.style.setProperty('--menu-border', 'rgba(0, 0, 0, 0.4)');
+            } else {
+                root.style.setProperty('--menu-bg', 'rgba(255, 255, 255, 0.2)');
+                root.style.setProperty('--menu-border', 'rgba(255, 255, 255, 0.3)');
+            }
             
-            // Update alle ticks individueel
             document.querySelectorAll('.hour-tick').forEach(tick => {
                 const angle = parseFloat(tick.getAttribute('data-angle'));
                 const normalizedAngle = (angle % 360 + 360) % 360;
                 const isDay = isAngleBetween(normalizedAngle, currentSunriseAngle, currentSunsetAngle);
                 const color = isDay ? getContrastYIQ(day) : getContrastYIQ(night);
-                
                 tick.querySelector('.tick-mark').style.backgroundColor = color;
                 const num = tick.querySelector('.hour-number');
                 if(num) num.style.color = color;
             });
+
+            document.querySelectorAll('.dropped-icon').forEach(updateIconBorder);
         }
 
         function isAngleBetween(target, start, end) {
-            const s = (start % 360 + 360) % 360;
-            const e = (end % 360 + 360) % 360;
-            const t = (target % 360 + 360) % 360;
-            if (s <= e) return t >= s && t <= e;
-            return t >= s || t <= e;
+            const s = (start % 360 + 360) % 360, e = (end % 360 + 360) % 360, t = (target % 360 + 360) % 360;
+            return s <= e ? (t >= s && t <= e) : (t >= s || t <= e);
         }
 
-        const colorPicks = {
-            'bg-color-pick': '--theme-color',
-            'icon-color-pick': '--icon-bg',
-            'day-color-pick': '--day-color',
-            'night-color-pick': '--night-color'
-        };
-
+        const colorPicks = {'bg-color-pick': '--theme-color', 'icon-color-pick': '--icon-bg', 'day-color-pick': '--day-color', 'night-color-pick': '--night-color'};
         Object.entries(colorPicks).forEach(([id, prop]) => {
             document.getElementById(id).addEventListener('input', (e) => {
                 document.documentElement.style.setProperty(prop, e.target.value);
-                updateColors();
-                saveState();
+                updateColors(); saveState();
             });
         });
 
         let activeElement = null, startX, startY, elemStartX, elemStartY, isDragging = false;
         const menu = document.getElementById("draggable-menu");
-        const addBtn = document.getElementById("add-btn");
-        const paletteBtn = document.getElementById("palette-btn");
         const universe = document.getElementById("universe");
 
-        addBtn.addEventListener('click', (e) => { if (!isDragging) { addBtn.classList.toggle('active'); paletteBtn.classList.remove('active'); e.stopPropagation(); } });
-        paletteBtn.addEventListener('click', (e) => { if (!isDragging) { paletteBtn.classList.toggle('active'); addBtn.classList.remove('active'); e.stopPropagation(); } });
-        document.addEventListener('click', () => { addBtn.classList.remove('active'); paletteBtn.classList.remove('active'); });
+        document.getElementById("add-btn").addEventListener('click', (e) => { e.stopPropagation(); document.getElementById("add-btn").classList.toggle('active'); document.getElementById("palette-btn").classList.remove('active'); });
+        document.getElementById("palette-btn").addEventListener('click', (e) => { e.stopPropagation(); document.getElementById("palette-btn").classList.toggle('active'); document.getElementById("add-btn").classList.remove('active'); });
+        document.addEventListener('click', () => { document.getElementById("add-btn").classList.remove('active'); document.getElementById("palette-btn").classList.remove('active'); });
 
-        function updateCirclePath(sunriseDeg, sunsetDeg) {
-            const polarToCartesian = (angleDeg) => {
-                const angleRad = (angleDeg * Math.PI) / 180.0;
-                return { x: 50 + 50 * Math.cos(angleRad), y: 50 + 50 * Math.sin(angleRad) };
-            };
-            const start = polarToCartesian(sunriseDeg);
-            const end = polarToCartesian(sunsetDeg);
-            const largeArcFlag = (sunsetDeg - sunriseDeg + 360) % 360 <= 180 ? "0" : "1";
-            const d = ["M", 50, 50, "L", start.x, start.y, "A", 50, 50, 0, largeArcFlag, 1, end.x, end.y, "Z"].join(" ");
-            document.getElementById("day-path").setAttribute("d", d);
+        function startDragging(e) {
+            const target = e.target.closest('#draggable-menu, .dropped-icon');
+            if (!target || e.target.closest('.expandable-content')) return;
+            isDragging = false; activeElement = target;
+            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
+            startX = touch.clientX; startY = touch.clientY;
+            if (activeElement === menu) { elemStartX = activeElement.offsetLeft; elemStartY = activeElement.offsetTop; }
+            else { const r = activeElement.getBoundingClientRect(), cr = universe.getBoundingClientRect(); elemStartX = ((r.left + r.width/2 - cr.left) / cr.width) * 100; elemStartY = ((r.top + r.height/2 - cr.top) / cr.height) * 100; }
+        }
+
+        function initDragSpawn(e, emoji) {
+            e.preventDefault(); e.stopPropagation();
+            const div = document.createElement('div'); div.className = 'dropped-icon spawning'; div.innerText = emoji;
+            const cr = universe.getBoundingClientRect();
+            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
+            const spawnX = ((touch.clientX - cr.left) / cr.width) * 100;
+            const spawnY = ((touch.clientY - cr.top) / cr.height) * 100;
+            div.style.left = spawnX + "%"; div.style.top = spawnY + "%";
+            div.onclick = (ev) => { if(!isDragging) { div.remove(); saveState(); } ev.stopPropagation(); };
+            universe.appendChild(div);
+            updateIconBorder(div);
+            activeElement = div; isDragging = true;
+            startX = touch.clientX; startY = touch.clientY; elemStartX = spawnX; elemStartY = spawnY;
+        }
+
+        function moveDragging(e) {
+            if (!activeElement) return;
+            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
+            const dx = touch.clientX - startX, dy = touch.clientY - startY;
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) isDragging = true;
+            if (activeElement === menu) {
+                menu.style.left = (elemStartX + dx) + "px"; menu.style.top = (elemStartY + dy) + "px";
+                updateMenuOrientation(elemStartX + dx, elemStartY + dy);
+            } else {
+                const cr = universe.getBoundingClientRect();
+                activeElement.style.left = (elemStartX + (dx / cr.width) * 100) + "%";
+                activeElement.style.top = (elemStartY + (dy / cr.height) * 100) + "%";
+                updateIconBorder(activeElement);
+            }
+        }
+
+        function updateMenuOrientation(x, y) {
+            menu.style.flexDirection = x < window.innerWidth / 2 ? "row-reverse" : "row";
+            [document.getElementById("expand-box"), document.getElementById("palette-box")].forEach(box => {
+                if (y > window.innerHeight / 2) box.classList.replace("expand-down", "expand-up");
+                else box.classList.replace("expand-up", "expand-down");
+            });
+        }
+
+        document.addEventListener("mousedown", startDragging);
+        document.addEventListener("touchstart", startDragging, { passive: false });
+        document.addEventListener("mousemove", moveDragging);
+        document.addEventListener("touchmove", moveDragging, { passive: false });
+        document.addEventListener("mouseup", endDragging);
+        document.addEventListener("touchend", endDragging);
+
+        function endDragging() {
+            if (activeElement) { activeElement.classList.remove('spawning'); saveState(); }
+            activeElement = null;
         }
 
         function drawClock(offset = 0) {
-            currentOffset = offset;
             const container = document.getElementById("ticks-container"); container.innerHTML = ''; 
             for (let i = 0; i < 24; i++) {
                 const angle = ((i-12)*15)+offset;
-                const wrapper = document.createElement('div'); 
-                wrapper.className = 'hour-tick';
+                const wrapper = document.createElement('div'); wrapper.className = 'hour-tick';
                 wrapper.setAttribute('data-angle', angle);
                 if (i % 6 === 0) {
                     wrapper.classList.add('tick-12');
@@ -295,117 +377,56 @@
                     .then(r => r.json()).then(data => {
                         const noon = new Date(data.results.solar_noon);
                         const offset = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
-                        const sunRise = new Date(data.results.sunrise);
-                        const sunSet = new Date(data.results.sunset);
+                        const sunRise = new Date(data.results.sunrise), sunSet = new Date(data.results.sunset);
                         currentSunriseAngle = (sunRise.getHours() + sunRise.getMinutes()/60 - 12) * 15 + offset;
                         currentSunsetAngle = (sunSet.getHours() + sunSet.getMinutes()/60 - 12) * 15 + offset;
                         drawClock(offset);
-                        updateCirclePath(currentSunriseAngle, currentSunsetAngle);
-                        const container = document.getElementById("solar-lines-container");
-                        container.innerHTML = '';
+                        const polarToCartesian = (angleDeg) => {
+                            const angleRad = (angleDeg * Math.PI) / 180.0;
+                            return { x: 50 + 50 * Math.cos(angleRad), y: 50 + 50 * Math.sin(angleRad) };
+                        };
+                        const start = polarToCartesian(currentSunriseAngle), end = polarToCartesian(currentSunsetAngle);
+                        const largeArcFlag = (currentSunsetAngle - currentSunriseAngle + 360) % 360 <= 180 ? "0" : "1";
+                        document.getElementById("day-path").setAttribute("d", ["M", 50, 50, "L", start.x, start.y, "A", 50, 50, 0, largeArcFlag, 1, end.x, end.y, "Z"].join(" "));
+                        const slc = document.getElementById("solar-lines-container"); slc.innerHTML = '';
                         [currentSunriseAngle, currentSunsetAngle].forEach(ang => {
                             const line = document.createElement('div'); line.className = 'solar-line';
                             line.style.transform = `translateX(-50%) rotate(${ang}deg)`;
-                            container.appendChild(line);
+                            slc.appendChild(line);
                         });
+                        // Directe update na het ophalen van zon-segmenten
+                        updateColors();
                     });
                 }, () => drawClock(0));
             } else drawClock(0);
         }
-
-        // --- Dragging & State ---
-        function startDragging(e) {
-            const target = e.target.closest('#draggable-menu, .dropped-icon');
-            if (!target || e.target.closest('.expandable-content')) return;
-            isDragging = false; activeElement = target;
-            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
-            startX = touch.clientX; startY = touch.clientY;
-            if (activeElement === menu) { elemStartX = activeElement.offsetLeft; elemStartY = activeElement.offsetTop; }
-            else {
-                const rect = activeElement.getBoundingClientRect(); const cRect = universe.getBoundingClientRect();
-                elemStartX = ((rect.left + rect.width/2 - cRect.left) / cRect.width) * 100;
-                elemStartY = ((rect.top + rect.height/2 - cRect.top) / cRect.height) * 100;
-            }
-        }
-
-        function initDragSpawn(e, emoji) {
-            e.stopPropagation();
-            const div = document.createElement('div'); div.className = 'dropped-icon'; div.innerText = emoji;
-            div.style.left = "50%"; div.style.top = "50%";
-            div.onclick = () => { if(!isDragging) { div.remove(); saveState(); } };
-            universe.appendChild(div);
-            activeElement = div; isDragging = true;
-            startX = (e.type.startsWith("touch") ? e.touches[0].clientX : e.clientX);
-            startY = (e.type.startsWith("touch") ? e.touches[0].clientY : e.clientY);
-            elemStartX = 50; elemStartY = 50;
-        }
-
-        function moveDragging(e) {
-            if (!activeElement) return;
-            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
-            const deltaX = touch.clientX - startX; const deltaY = touch.clientY - startY;
-            if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) isDragging = true;
-            if (activeElement === menu) {
-                menu.style.left = (elemStartX + deltaX) + "px"; menu.style.top = (elemStartY + deltaY) + "px";
-                updateMenuOrientation(elemStartX + deltaX, elemStartY + deltaY);
-            } else {
-                const cRect = universe.getBoundingClientRect();
-                activeElement.style.left = (elemStartX + (deltaX / cRect.width) * 100) + "%";
-                activeElement.style.top = (elemStartY + (deltaY / cRect.height) * 100) + "%";
-            }
-        }
-
-        function updateMenuOrientation(x, y) {
-            menu.style.flexDirection = x < window.innerWidth / 2 ? "row" : "row-reverse";
-            const boxes = [document.getElementById("expand-box"), document.getElementById("palette-box")];
-            boxes.forEach(box => {
-                if (y > window.innerHeight / 2) box.classList.replace("expand-down", "expand-up");
-                else box.classList.replace("expand-up", "expand-down");
-            });
-        }
-
-        document.addEventListener("mousedown", startDragging);
-        document.addEventListener("touchstart", startDragging, { passive: false });
-        document.addEventListener("mousemove", moveDragging);
-        document.addEventListener("touchmove", moveDragging, { passive: false });
-        document.addEventListener("mouseup", () => { if (activeElement) saveState(); activeElement = null; });
-        document.addEventListener("touchend", () => { if (activeElement) saveState(); activeElement = null; });
 
         function saveState() {
             const icons = [...document.querySelectorAll('.dropped-icon')].map(i => ({text: i.innerText, left: i.style.left, top: i.style.top}));
             localStorage.setItem('universeIcons', JSON.stringify(icons));
             localStorage.setItem('themeColor', getComputedStyle(document.documentElement).getPropertyValue('--theme-color'));
             localStorage.setItem('iconBg', getComputedStyle(document.documentElement).getPropertyValue('--icon-bg'));
-            localStorage.setItem('dayColor', getComputedStyle(document.documentElement).getPropertyValue('--day-color'));
-            localStorage.setItem('nightColor', getComputedStyle(document.documentElement).getPropertyValue('--night-color'));
         }
 
         function loadState() {
-            const props = ['themeColor', 'iconBg', 'dayColor', 'nightColor'];
-            props.forEach(p => {
-                const val = localStorage.getItem(p);
-                if (val) {
-                    document.documentElement.style.setProperty('--' + p.replace(/[A-Z]/g, m => "-" + m.toLowerCase()), val);
-                    const pickId = Object.keys(colorPicks).find(key => colorPicks[key] === '--' + p.replace(/[A-Z]/g, m => "-" + m.toLowerCase()));
-                    if(pickId) document.getElementById(pickId).value = val.trim();
-                }
-            });
+            const tc = localStorage.getItem('themeColor'); if (tc) document.documentElement.style.setProperty('--theme-color', tc);
+            const ib = localStorage.getItem('iconBg'); if (ib) document.documentElement.style.setProperty('--icon-bg', ib);
             const savedIcons = JSON.parse(localStorage.getItem('universeIcons') || "[]");
             savedIcons.forEach(d => {
                 const div = document.createElement('div'); div.className = 'dropped-icon'; div.innerText = d.text;
                 div.style.left = d.left; div.style.top = d.top;
-                div.onclick = () => { if(!isDragging) { div.remove(); saveState(); } };
+                div.onclick = (e) => { if(!isDragging) { div.remove(); saveState(); } e.stopPropagation(); };
                 universe.appendChild(div);
             });
-            updateColors();
+            getSolarData();
         }
         
-        getSolarData(); loadState();
+        loadState();
+        
         (function setMoonPhase() {
             const moonEl = document.getElementById("moon-phase");
             const cycle = 29.53, now = new Date(), ref = new Date('2024-01-11');
             const pos = ((now - ref) / (1000 * 60 * 60 * 24)) % cycle;
-            moonEl.className = 'moon-container';
             if (pos < 2 || pos > 27.5) moonEl.classList.add('moon-new');
             else if (pos < 13) moonEl.classList.add('moon-first-quarter');
             else if (pos < 17) moonEl.classList.add('moon-full');

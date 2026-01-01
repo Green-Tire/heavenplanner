@@ -21,7 +21,6 @@
             --menu-item-bg: rgba(255, 255, 255, 0.15);
             --menu-text: white;
             --zoom-level: 1;
-            /* Nieuwe variabelen voor panning */
             --pan-x: 0;
             --pan-y: 0;
         }
@@ -32,21 +31,62 @@
             display: flex; justify-content: center; align-items: center;
             overflow: hidden; font-family: 'Segoe UI', sans-serif;
             touch-action: none; user-select: none; -webkit-user-select: none;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
         }
 
+        /* Pop-up Styles */
+        #welcome-popup {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .popup-content {
+            background: var(--menu-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--menu-border);
+            padding: 30px;
+            border-radius: 25px;
+            max-width: 85%;
+            width: 400px;
+            color: var(--menu-text);
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 15px; right: 15px;
+            cursor: pointer;
+            color: var(--menu-text);
+            opacity: 0.7;
+        }
+
+        .popup-close:hover { opacity: 1; }
+
+        .popup-content h2 { margin-top: 0; font-size: 1.4rem; }
+        .popup-content ol { padding-left: 20px; line-height: 1.6; }
+        .popup-content li { margin-bottom: 10px; }
+
+        /* Rest van de bestaande styles */
         .zoom-wrapper {
             position: relative;
             display: flex; justify-content: center; align-items: center;
-            /* Aangepast om zowel zoom als pan te ondersteunen */
             transform: translate(calc(var(--pan-x) * 1px), calc(var(--pan-y) * 1px)) scale(var(--zoom-level));
             transition: transform 0.2s ease-out;
             width: 100%; height: 100%;
             z-index: 10;
         }
-
-        .zoom-wrapper.top-layer { z-index: 2000 !important; }
 
         .universe-container {
             position: relative;
@@ -57,24 +97,16 @@
         }
 
         #stickers-layer {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 85vmin; height: 85vmin;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 30;
+            position: absolute; top: 50%; left: 50%; width: 85vmin; height: 85vmin;
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 30;
         }
 
         #dual-circle {
-            position: absolute; width: 100%; height: 100%;
-            transform: rotate(-90deg);
-            z-index: 0; border-radius: 50%; box-sizing: border-box;
-            border: 1px solid var(--celestial-contrast);
+            position: absolute; width: 100%; height: 100%; transform: rotate(-90deg);
+            z-index: 0; border-radius: 50%; box-sizing: border-box; border: 1px solid var(--celestial-contrast);
         }
 
-        .celestial-body {
-            position: absolute; z-index: 5; left: 50%; transform: translateX(-50%);
-        }
+        .celestial-body { position: absolute; z-index: 5; left: 50%; transform: translateX(-50%); }
         .sun { top: -18%; width: 15%; height: 15%; }
         .sun svg { width: 100%; height: 100%; fill: var(--celestial-contrast); }
         .sun svg line { stroke: var(--celestial-contrast); }
@@ -82,84 +114,54 @@
         .moon-container {
             position: absolute; bottom: -16%; width: 11%; height: 11%;
             border-radius: 50%; border: 2px solid var(--celestial-contrast) !important;
-            left: 50%; transform: translateX(-50%);
-            z-index: 5; background-color: white !important; overflow: hidden;
-            box-sizing: border-box;
+            left: 50%; transform: translateX(-50%); z-index: 5; background-color: white !important; overflow: hidden;
         }
-        .moon-container::after {
-            content: ''; position: absolute; top: 0; width: 50%; height: 100%;
-            background-color: black !important; display: none; z-index: 6;
-        }
+        .moon-container::after { content: ''; position: absolute; top: 0; width: 50%; height: 100%; background-color: black !important; display: none; z-index: 6; }
         .moon-first-quarter::after { display: block; left: 0; }
         .moon-last-quarter::after { display: block; right: 0; }
         .moon-new { background-color: black !important; }
 
-        #ticks-container, #solar-lines-container { position: absolute; width: 100%; height: 100%; z-index: 1; }
+        #ticks-container { position: absolute; width: 100%; height: 100%; z-index: 1; }
         .hour-tick { position: absolute; top: 0; left: 50%; height: 100%; width: 2px; pointer-events: none; }
         .tick-mark { width: 2px; height: 4%; background-color: black; margin: 0 auto; }
-        .tick-12 .tick-mark { width: 6px; height: 8%; }
         .hour-number { position: absolute; top: 6%; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 3.5vmin; }
 
         #draggable-menu {
-            position: absolute; top: 20px; left: 20px;
-            display: flex; flex-direction: row;
-            gap: 10px; padding: 8px 12px;
+            position: absolute; top: 20px; left: 20px; display: flex; flex-direction: row; gap: 10px; padding: 8px 12px;
             background: var(--menu-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--menu-border); border-radius: 40px; cursor: grab; 
-            z-index: 5000; 
+            border: 1px solid var(--menu-border); border-radius: 40px; cursor: grab; z-index: 5000; 
         }
 
         #draggable-menu.mirrored { flex-direction: row-reverse; }
-
-        .menu-item {
-            position: relative; width: 40px; height: 40px;
-            background: var(--menu-item-bg); border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; 
-            color: var(--menu-text); cursor: pointer;
-        }
-
-        .expandable { 
-            display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5100; 
-        }
+        .menu-item { position: relative; width: 40px; height: 40px; background: var(--menu-item-bg); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--menu-text); cursor: pointer; }
+        .expandable { display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5100; }
         .expand-down { top: 100%; padding-top: 10px; }
         .expand-up { bottom: 100%; padding-bottom: 10px; }
-        
         .menu-item.active .expandable { display: block; }
-
-        .expandable-content {
-            background: rgba(20, 20, 20, 0.95); padding: 12px; border-radius: 15px;
-            display: grid; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
-            min-width: 40px;
-        }
-
+        .expandable-content { background: rgba(20, 20, 20, 0.95); padding: 12px; border-radius: 15px; display: grid; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.2); min-width: 40px; }
         #palette-box .expandable-content { grid-template-columns: repeat(2, 1fr); }
         #expand-box .expandable-content { grid-template-columns: repeat(3, 1fr); }
-
-        .sub-icon {
-            width: 35px; height: 35px; background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            color: white; cursor: pointer; overflow: hidden; position: relative;
-        }
-
-        .dropped-icon {
-            position: absolute; width: 9%; height: 9%;
-            background-color: var(--icon-bg); color: var(--text-contrast); 
-            border: 1px solid transparent; border-radius: 50%; 
-            display: flex; justify-content: center; align-items: center;
-            cursor: grab; pointer-events: auto; font-size: 4vmin; transform: translate(-50%, -50%);
-            z-index: 100;
-        }
-        
+        .sub-icon { width: 35px; height: 35px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; cursor: pointer; overflow: hidden; position: relative; }
+        .dropped-icon { position: absolute; width: 9%; height: 9%; background-color: var(--icon-bg); color: var(--text-contrast); border: 1px solid transparent; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: grab; pointer-events: auto; font-size: 4vmin; transform: translate(-50%, -50%); z-index: 100; }
         .dragging { z-index: 6000 !important; }
         .color-input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-
-        @media print { 
-            #draggable-menu { display: none; } 
-            body { background-color: var(--theme-color) !important; }
-        }
+        @media print { #draggable-menu, #welcome-popup { display: none; } body { background-color: var(--theme-color) !important; } }
     </style>
 </head>
 <body>
+
+    <div id="welcome-popup">
+        <div class="popup-content">
+            <div class="popup-close" onclick="closePopup()"><i data-lucide="x"></i></div>
+            <h2>Verborgen functies:</h2>
+            <ol>
+                <li>Sleep stickers naar je planner door te klikken op <b>+</b>.</li>
+                <li>Verwijder stickers door erop te klikken.</li>
+                <li>Beweeg je planner door langer te drukken op je planning.</li>
+                <li>Dag, nacht en de maanstand worden live berekend op basis van je tijd en locatie.</li>
+            </ol>
+        </div>
+    </div>
 
     <div class="zoom-wrapper" id="zoom-wrapper">
         <div class="universe-container" id="universe">
@@ -224,22 +226,22 @@
     </div>
 
     <script>
-        // Setup Favicon
         function setFavicon() {
             const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
             const blob = new Blob([sunIcon], {type: 'image/svg+xml'});
             const url = URL.createObjectURL(blob);
             const link = document.createElement('link');
-            link.rel = 'icon';
-            link.href = url;
+            link.rel = 'icon'; link.href = url;
             document.head.appendChild(link);
         }
         setFavicon();
-
         lucide.createIcons();
+
+        function closePopup() {
+            document.getElementById('welcome-popup').style.display = 'none';
+        }
+
         let currentSunriseAngle = 90, currentSunsetAngle = 270, activeElement = null, startX, startY, elemStartX, elemStartY, isDragging = false, isSpawning = false;
-        
-        // Panning variabelen
         let isPanning = false, panTimer = null, currentPanX = 0, currentPanY = 0, startPanX = 0, startPanY = 0;
 
         const menu = document.getElementById("draggable-menu");
@@ -249,25 +251,19 @@
 
         function updateMenuDynamics() {
             const menuRect = menu.getBoundingClientRect();
-            const screenHeight = window.innerHeight;
-            const screenWidth = window.innerWidth;
             const expandables = document.querySelectorAll('.expandable');
-            const menuCenter = menuRect.left + (menuRect.width / 2);
-
-            if (menuRect.top > screenHeight / 2) {
+            if (menuRect.top > window.innerHeight / 2) {
                 expandables.forEach(el => { el.classList.remove('expand-down'); el.classList.add('expand-up'); });
             } else {
                 expandables.forEach(el => { el.classList.remove('expand-up'); el.classList.add('expand-down'); });
             }
-
-            if (menuCenter > screenWidth / 2) { menu.classList.add('mirrored'); } 
-            else { menu.classList.remove('mirrored'); }
+            if (menuRect.left + (menuRect.width / 2) > window.innerWidth / 2) menu.classList.add('mirrored');
+            else menu.classList.remove('mirrored');
         }
 
         const colorPicks = {'bg-color-pick': '--theme-color', 'icon-color-pick': '--icon-bg', 'day-color-pick': '--day-color', 'night-color-pick': '--night-color'};
         Object.entries(colorPicks).forEach(([id, prop]) => {
-            const el = document.getElementById(id);
-            el.addEventListener('input', (e) => {
+            document.getElementById(id).addEventListener('input', (e) => {
                 document.documentElement.style.setProperty(prop, e.target.value);
                 updateColors(); saveState();
             });
@@ -283,6 +279,13 @@
         btns.forEach(id => {
             document.getElementById(id).addEventListener('click', (e) => {
                 if (isDragging || isPanning) return;
+                if (id === "zoom-btn" && !e.target.closest('.expandable-content')) {
+                    document.documentElement.style.setProperty('--zoom-level', 1);
+                    zoomSlider.value = 1; currentPanX = 0; currentPanY = 0;
+                    document.documentElement.style.setProperty('--pan-x', 0);
+                    document.documentElement.style.setProperty('--pan-y', 0);
+                    saveState();
+                }
                 if (!e.target.closest('.expandable-content')) {
                     updateMenuDynamics(); 
                     btns.forEach(b => { if(b !== id) document.getElementById(b).classList.remove('active'); });
@@ -291,114 +294,57 @@
             });
         });
 
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('#draggable-menu')) btns.forEach(b => document.getElementById(b).classList.remove('active'));
-        });
+        document.addEventListener('click', (e) => { if (!e.target.closest('#draggable-menu')) btns.forEach(b => document.getElementById(b).classList.remove('active')); });
 
         const zoomSlider = document.getElementById("zoom-slider");
-        zoomSlider.addEventListener('input', (e) => {
-            document.documentElement.style.setProperty('--zoom-level', e.target.value);
-            saveState();
-        });
+        zoomSlider.addEventListener('input', (e) => { document.documentElement.style.setProperty('--zoom-level', e.target.value); saveState(); });
 
         function startDragging(e) {
             const target = e.target.closest('#draggable-menu, .dropped-icon');
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
-            
-            startX = touch.clientX; 
-            startY = touch.clientY;
-
+            startX = touch.clientX; startY = touch.clientY;
             if (!target || e.target.closest('.expandable-content')) {
-                // Start timer voor panning (long press)
                 panTimer = setTimeout(() => {
-                    isPanning = true;
-                    startPanX = touch.clientX - currentPanX;
-                    startPanY = touch.clientY - currentPanY;
+                    isPanning = true; startPanX = touch.clientX - currentPanX; startPanY = touch.clientY - currentPanY;
                     document.body.style.cursor = 'grabbing';
                 }, 500);
                 return;
             }
-
-            isDragging = false; isSpawning = false;
-            activeElement = target;
-            activeElement.classList.add('dragging'); 
-            
+            isDragging = false; isSpawning = false; activeElement = target; activeElement.classList.add('dragging'); 
             if (activeElement !== menu) zoomWrapper.classList.add('top-layer');
-            
-            if (activeElement === menu) {
-                elemStartX = activeElement.offsetLeft; elemStartY = activeElement.offsetTop;
-            } else { 
-                const r = activeElement.getBoundingClientRect(), cr = stickersLayer.getBoundingClientRect(); 
-                elemStartX = ((r.left + r.width/2 - cr.left) / cr.width) * 100; 
-                elemStartY = ((r.top + r.height/2 - cr.top) / cr.height) * 100; 
-            }
+            if (activeElement === menu) { elemStartX = activeElement.offsetLeft; elemStartY = activeElement.offsetTop; }
+            else { const r = activeElement.getBoundingClientRect(), cr = stickersLayer.getBoundingClientRect(); elemStartX = ((r.left + r.width/2 - cr.left) / cr.width) * 100; elemStartY = ((r.top + r.height/2 - cr.top) / cr.height) * 100; }
         }
 
         function moveDragging(e) {
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
             const dx = touch.clientX - startX, dy = touch.clientY - startY;
-
-            // Als de gebruiker beweegt voordat de long-press timer afloopt, annuleer de pan-start
-            if (!isPanning && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
-                clearTimeout(panTimer);
-            }
-
+            if (!isPanning && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) clearTimeout(panTimer);
             if (isPanning) {
-                currentPanX = touch.clientX - startPanX;
-                currentPanY = touch.clientY - startPanY;
-                document.documentElement.style.setProperty('--pan-x', currentPanX);
-                document.documentElement.style.setProperty('--pan-y', currentPanY);
+                currentPanX = touch.clientX - startPanX; currentPanY = touch.clientY - startPanY;
+                document.documentElement.style.setProperty('--pan-x', currentPanX); document.documentElement.style.setProperty('--pan-y', currentPanY);
                 return;
             }
-
             if (!activeElement) return;
             if (Math.abs(dx) > 5 || Math.abs(dy) > 5) isDragging = true;
-            
-            if (activeElement === menu) {
-                menu.style.left = (elemStartX + dx) + "px"; 
-                menu.style.top = (elemStartY + dy) + "px";
-                updateMenuDynamics();
-            } else if (isSpawning) {
-                activeElement.style.left = touch.clientX + "px";
-                activeElement.style.top = touch.clientY + "px";
-            } else {
-                const cr = stickersLayer.getBoundingClientRect();
-                activeElement.style.left = (elemStartX + (dx / cr.width) * 100) + "%";
-                activeElement.style.top = (elemStartY + (dy / cr.height) * 100) + "%";
-                updateIconBorder(activeElement);
-            }
+            if (activeElement === menu) { menu.style.left = (elemStartX + dx) + "px"; menu.style.top = (elemStartY + dy) + "px"; updateMenuDynamics(); }
+            else if (isSpawning) { activeElement.style.left = touch.clientX + "px"; activeElement.style.top = touch.clientY + "px"; }
+            else { const cr = stickersLayer.getBoundingClientRect(); activeElement.style.left = (elemStartX + (dx / cr.width) * 100) + "%"; activeElement.style.top = (elemStartY + (dy / cr.height) * 100) + "%"; updateIconBorder(activeElement); }
         }
 
         function endDragging() { 
             clearTimeout(panTimer);
-            if (isPanning) {
-                isPanning = false;
-                document.body.style.cursor = 'default';
-                saveState();
-                return;
-            }
-
+            if (isPanning) { isPanning = false; document.body.style.cursor = 'default'; saveState(); return; }
             if (activeElement) {
                 if (isSpawning) {
-                    const cr = stickersLayer.getBoundingClientRect();
-                    const rect = activeElement.getBoundingClientRect();
-                    const centerX = rect.left + rect.width / 2;
-                    const centerY = rect.top + rect.height / 2;
-
-                    const finalX = ((centerX - cr.left) / cr.width) * 100;
-                    const finalY = ((centerY - cr.top) / cr.height) * 100;
-                    
-                    activeElement.style.width = "9%";
-                    activeElement.style.height = "9%";
-                    activeElement.style.left = finalX + "%";
-                    activeElement.style.top = finalY + "%";
-                    
-                    stickersLayer.appendChild(activeElement);
-                    updateIconBorder(activeElement);
+                    const cr = stickersLayer.getBoundingClientRect(); const rect = activeElement.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2; const centerY = rect.top + rect.height / 2;
+                    activeElement.style.width = "9%"; activeElement.style.height = "9%";
+                    activeElement.style.left = (((centerX - cr.left) / cr.width) * 100) + "%";
+                    activeElement.style.top = (((centerY - cr.top) / cr.height) * 100) + "%";
+                    stickersLayer.appendChild(activeElement); updateIconBorder(activeElement);
                 }
-                activeElement.classList.remove('dragging'); 
-                zoomWrapper.classList.remove('top-layer');
-                saveState();
+                activeElement.classList.remove('dragging'); zoomWrapper.classList.remove('top-layer'); saveState();
             }
             activeElement = null; isSpawning = false;
         }
@@ -407,21 +353,12 @@
             e.preventDefault(); e.stopPropagation();
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
             const uniRect = universe.getBoundingClientRect();
-            const pixelSize = uniRect.width * 0.09;
-
-            const div = document.createElement('div'); 
-            div.className = 'dropped-icon dragging'; 
-            div.innerText = emoji;
-            div.style.width = pixelSize + "px";
-            div.style.height = pixelSize + "px";
-            div.style.left = touch.clientX + "px";
-            div.style.top = touch.clientY + "px";
-            
+            const div = document.createElement('div'); div.className = 'dropped-icon dragging'; div.innerText = emoji;
+            div.style.width = (uniRect.width * 0.09) + "px"; div.style.height = (uniRect.width * 0.09) + "px";
+            div.style.left = touch.clientX + "px"; div.style.top = touch.clientY + "px";
             document.body.appendChild(div);
             div.onclick = (ev) => { if(!isDragging) { div.remove(); saveState(); } ev.stopPropagation(); };
-            
-            activeElement = div; isDragging = true; isSpawning = true;
-            startX = touch.clientX; startY = touch.clientY;
+            activeElement = div; isDragging = true; isSpawning = true; startX = touch.clientX; startY = touch.clientY;
         }
 
         document.addEventListener("mousedown", startDragging);
@@ -433,28 +370,24 @@
 
         function getContrastYIQ(hexcolor){
             if (!hexcolor) return 'black';
+            let r, g, b;
             if (hexcolor.startsWith('rgb')) {
-                const colors = hexcolor.match(/\d+/g);
-                var r = parseInt(colors[0]), g = parseInt(colors[1]), b = parseInt(colors[2]);
+                const colors = hexcolor.match(/\d+/g); r = parseInt(colors[0]); g = parseInt(colors[1]); b = parseInt(colors[2]);
             } else {
-                hexcolor = hexcolor.replace("#", "");
-                var r = parseInt(hexcolor.substr(0,2),16), g = parseInt(hexcolor.substr(2,2),16), b = parseInt(hexcolor.substr(4,2),16);
+                hexcolor = hexcolor.replace("#", ""); r = parseInt(hexcolor.substr(0,2),16); g = parseInt(hexcolor.substr(2,2),16); b = parseInt(hexcolor.substr(4,2),16);
             }
             return (((r*299)+(g*587)+(b*114))/1000 >= 128) ? 'black' : 'white';
         }
 
         function updateIconBorder(icon) {
-            const rect = icon.getBoundingClientRect();
-            const cr = universe.getBoundingClientRect();
-            const x = (rect.left + rect.width / 2) - (cr.left + cr.width / 2);
-            const y = (rect.top + rect.height / 2) - (cr.top + cr.height / 2);
+            const rect = icon.getBoundingClientRect(); const cr = universe.getBoundingClientRect();
+            const x = (rect.left + rect.width / 2) - (cr.left + cr.width / 2); const y = (rect.top + rect.height / 2) - (cr.top + cr.height / 2);
             let angle = (Math.atan2(y, x) * (180 / Math.PI) + 360 + 90) % 360;
             const dayColor = getComputedStyle(document.documentElement).getPropertyValue('--day-color').trim();
             const nightColor = getComputedStyle(document.documentElement).getPropertyValue('--night-color').trim();
             const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
-            if (Math.sqrt(x*x + y*y) < cr.width / 2) {
-                icon.style.borderColor = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(dayColor) : getContrastYIQ(nightColor);
-            } else { icon.style.borderColor = getContrastYIQ(themeColor); }
+            if (Math.sqrt(x*x + y*y) < cr.width / 2) icon.style.borderColor = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(dayColor) : getContrastYIQ(nightColor);
+            else icon.style.borderColor = getContrastYIQ(themeColor);
         }
 
         function isAngleBetween(t, s, e) {
@@ -472,7 +405,6 @@
             root.style.setProperty('--celestial-contrast', bgContrast);
             root.style.setProperty('--text-contrast', getContrastYIQ(iconBg));
             root.style.setProperty('--menu-bg', bgContrast === 'black' ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.2)');
-            
             document.querySelectorAll('.hour-tick').forEach(tick => {
                 const angle = parseFloat(tick.getAttribute('data-angle'));
                 const color = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(day) : getContrastYIQ(night);
@@ -514,8 +446,7 @@
                         drawClock(offset);
                         const polarToCartesian = (a) => ({ x: 50 + 50 * Math.cos(a * Math.PI / 180), y: 50 + 50 * Math.sin(a * Math.PI / 180) });
                         const start = polarToCartesian(currentSunriseAngle), end = polarToCartesian(currentSunsetAngle);
-                        const largeArc = (currentSunsetAngle - currentSunriseAngle + 360) % 360 <= 180 ? "0" : "1";
-                        document.getElementById("day-path").setAttribute("d", `M 50 50 L ${start.x} ${start.y} A 50 50 0 ${largeArc} 1 ${end.x} ${end.y} Z`);
+                        document.getElementById("day-path").setAttribute("d", `M 50 50 L ${start.x} ${start.y} A 50 50 0 ${((currentSunsetAngle - currentSunriseAngle + 360) % 360 <= 180 ? "0" : "1")} 1 ${end.x} ${end.y} Z`);
                         updateColors();
                     });
                 }, () => drawClock(0));
@@ -531,28 +462,14 @@
             localStorage.setItem('nightColor', getComputedStyle(document.documentElement).getPropertyValue('--night-color'));
             localStorage.setItem('zoomLevel', zoomSlider.value);
             localStorage.setItem('menuPos', JSON.stringify({left: menu.style.left, top: menu.style.top}));
-            // Sla ook pan positie op
             localStorage.setItem('panPos', JSON.stringify({x: currentPanX, y: currentPanY}));
         }
 
         function loadState() {
-            const tc = localStorage.getItem('themeColor'); if (tc) document.documentElement.style.setProperty('--theme-color', tc);
-            const ib = localStorage.getItem('iconBg'); if (ib) document.documentElement.style.setProperty('--icon-bg', ib);
-            const dc = localStorage.getItem('dayColor'); if (dc) document.documentElement.style.setProperty('--day-color', dc);
-            const nc = localStorage.getItem('nightColor'); if (nc) document.documentElement.style.setProperty('--night-color', nc);
             const zl = localStorage.getItem('zoomLevel'); if (zl) { zoomSlider.value = zl; document.documentElement.style.setProperty('--zoom-level', zl); }
-            const mp = JSON.parse(localStorage.getItem('menuPos')); if (mp) { menu.style.left = mp.left; menu.style.top = mp.top; }
-            
-            const pp = JSON.parse(localStorage.getItem('panPos'));
-            if (pp) {
-                currentPanX = pp.x; currentPanY = pp.y;
-                document.documentElement.style.setProperty('--pan-x', currentPanX);
-                document.documentElement.style.setProperty('--pan-y', currentPanY);
-            }
-
+            const pp = JSON.parse(localStorage.getItem('panPos')); if (pp) { currentPanX = pp.x; currentPanY = pp.y; document.documentElement.style.setProperty('--pan-x', currentPanX); document.documentElement.style.setProperty('--pan-y', currentPanY); }
             JSON.parse(localStorage.getItem('universeIcons') || "[]").forEach(d => {
-                const div = document.createElement('div'); div.className = 'dropped-icon'; div.innerText = d.text;
-                div.style.left = d.left; div.style.top = d.top;
+                const div = document.createElement('div'); div.className = 'dropped-icon'; div.innerText = d.text; div.style.left = d.left; div.style.top = d.top;
                 div.onclick = (e) => { if(!isDragging) { div.remove(); saveState(); } e.stopPropagation(); };
                 stickersLayer.appendChild(div);
             });

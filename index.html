@@ -6,17 +6,16 @@
     <title>Hemelplanner</title>
 
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
     <style>
         :root { 
-            --theme-color: #000000;
+            --theme-color: #000000; 
             --icon-bg: #000000;
             --day-color: rgb(204, 186, 108);
             --night-color: rgb(103, 126, 161);
             --line-thickness: 2px;
             --text-contrast: white;
-            --celestial-contrast: white;
+            --celestial-contrast: white; 
             --menu-bg: rgba(255, 255, 255, 0.2);
             --menu-border: rgba(255, 255, 255, 0.3);
             --menu-item-bg: rgba(255, 255, 255, 0.15);
@@ -27,8 +26,7 @@
         }
         
         body, html {
-            margin: 0;
-            padding: 0; width: 100%; height: 100%;
+            margin: 0; padding: 0; width: 100%; height: 100%;
             background-color: var(--theme-color);
             display: flex; justify-content: center; align-items: center;
             overflow: hidden; font-family: 'Segoe UI', sans-serif;
@@ -85,8 +83,7 @@
             display: flex; justify-content: center; align-items: center;
             transform: translate(calc(var(--pan-x) * 1px), calc(var(--pan-y) * 1px)) scale(var(--zoom-level));
             transition: transform 0.2s ease-out;
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             z-index: 10;
         }
 
@@ -99,14 +96,12 @@
         }
 
         #stickers-layer {
-            position: absolute;
-            top: 50%; left: 50%; width: 85vmin; height: 85vmin;
+            position: absolute; top: 50%; left: 50%; width: 85vmin; height: 85vmin;
             transform: translate(-50%, -50%); pointer-events: none; z-index: 30;
         }
 
         #dual-circle {
-            position: absolute;
-            width: 100%; height: 100%; transform: rotate(-90deg);
+            position: absolute; width: 100%; height: 100%; transform: rotate(-90deg);
             z-index: 0; border-radius: 50%; box-sizing: border-box; border: 1px solid var(--celestial-contrast);
         }
 
@@ -116,15 +111,11 @@
         .sun svg line { stroke: var(--celestial-contrast); }
         
         .moon-container {
-            position: absolute;
-            bottom: -16%; width: 11%; height: 11%;
+            position: absolute; bottom: -16%; width: 11%; height: 11%;
             border-radius: 50%; border: 2px solid var(--celestial-contrast) !important;
-            left: 50%; transform: translateX(-50%); z-index: 5;
-            background-color: white !important; overflow: hidden;
+            left: 50%; transform: translateX(-50%); z-index: 5; background-color: white !important; overflow: hidden;
         }
-        .moon-container::after { content: ''; position: absolute;
-            top: 0; width: 50%; height: 100%; background-color: black !important; display: none; z-index: 6;
-        }
+        .moon-container::after { content: ''; position: absolute; top: 0; width: 50%; height: 100%; background-color: black !important; display: none; z-index: 6; }
         .moon-first-quarter::after { display: block; left: 0; }
         .moon-last-quarter::after { display: block; right: 0; }
         .moon-new { background-color: black !important; }
@@ -135,46 +126,65 @@
         .hour-number { position: absolute; top: 6%; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 3.5vmin; }
 
         #draggable-menu {
-            position: absolute;
-            top: 20px; left: 20px; display: flex; flex-direction: row; gap: 10px; padding: 8px 12px;
+            position: absolute; top: 20px; left: 20px; display: flex; flex-direction: row; gap: 10px; padding: 8px 12px;
             background: var(--menu-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--menu-border); border-radius: 40px; cursor: grab; z-index: 5000;
+            border: 1px solid var(--menu-border); border-radius: 40px; cursor: grab; z-index: 5000; 
         }
 
         #draggable-menu.mirrored { flex-direction: row-reverse; }
-        .menu-item { position: relative; width: 40px; height: 40px; background: var(--menu-item-bg); border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; color: var(--menu-text); cursor: pointer;
-        }
+        .menu-item { position: relative; width: 40px; height: 40px; background: var(--menu-item-bg); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--menu-text); cursor: pointer; }
         .expandable { display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5100; }
         .expand-down { top: 100%; padding-top: 10px; }
         .expand-up { bottom: 100%; padding-bottom: 10px; }
         .menu-item.active .expandable { display: block; }
-        .expandable-content { background: rgba(20, 20, 20, 0.95); padding: 12px; border-radius: 15px;
-            display: grid; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.2); min-width: 40px;
-        }
+        .expandable-content { background: rgba(20, 20, 20, 0.95); padding: 12px; border-radius: 15px; display: grid; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.2); min-width: 40px; }
         #palette-box .expandable-content { grid-template-columns: repeat(2, 1fr); }
-        #add-box .expandable-content { grid-template-columns: repeat(3, 1fr); }
-        #download-box .expandable-content { grid-template-columns: 1fr; }
-        
-        .sub-icon { width: 35px; height: 35px; background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; cursor: pointer; overflow: hidden; position: relative;
-        }
-        .dropped-icon { position: absolute; width: 9%; height: 9%; background-color: var(--icon-bg); color: var(--text-contrast);
-            border: 1px solid transparent; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: grab; pointer-events: auto; font-size: 4vmin;
-            transform: translate(-50%, -50%); z-index: 100; }
+        #expand-box .expandable-content { grid-template-columns: repeat(3, 1fr); }
+        .sub-icon { width: 35px; height: 35px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; cursor: pointer; overflow: hidden; position: relative; }
+        .dropped-icon { position: absolute; width: 9%; height: 9%; background-color: var(--icon-bg); color: var(--text-contrast); border: 1px solid transparent; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: grab; pointer-events: auto; font-size: 4vmin; transform: translate(-50%, -50%); z-index: 100; }
         .dragging { z-index: 6000 !important; }
         .color-input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
+        /* PRINT SETTINGS */
         @media print {
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-            body, html { background-color: var(--theme-color) !important; }
-            #draggable-menu, #welcome-popup { display: none !important; }
-            .sun svg { fill: var(--celestial-contrast) !important; }
-            .sun svg line { stroke: var(--celestial-contrast) !important; }
-            .moon-container { border-color: var(--celestial-contrast) !important; background-color: white !important; }
-            .moon-new { background-color: black !important; }
-            .moon-first-quarter::after, .moon-last-quarter::after { background-color: black !important; }
-            .dropped-icon { background-color: var(--icon-bg) !important; color: var(--text-contrast) !important; border-color: inherit !important; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            body, html { 
+                background-color: var(--theme-color) !important; 
+            }
+
+            #draggable-menu, #welcome-popup { 
+                display: none !important; 
+            }
+
+            .sun svg {
+                fill: var(--celestial-contrast) !important;
+            }
+            .sun svg line {
+                stroke: var(--celestial-contrast) !important;
+            }
+
+            .moon-container {
+                border-color: var(--celestial-contrast) !important;
+                background-color: white !important;
+            }
+            .moon-new {
+                background-color: black !important;
+            }
+            .moon-first-quarter::after, .moon-last-quarter::after {
+                background-color: black !important;
+            }
+            
+            /* Zorg dat stickers ook zichtbaar blijven */
+            .dropped-icon {
+                background-color: var(--icon-bg) !important;
+                color: var(--text-contrast) !important;
+                border-color: inherit !important;
+            }
         }
     </style>
 </head>
@@ -211,7 +221,7 @@
 
     <div id="draggable-menu">
         <div id="add-btn" class="menu-item"><i data-lucide="plus"></i>
-            <div id="add-box" class="expandable expand-down">
+            <div id="expand-box" class="expandable expand-down">
                 <div class="expandable-content">
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '⏰')" ontouchstart="initDragSpawn(event, '⏰')">⏰</div>
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '📻')" ontouchstart="initDragSpawn(event, '📻')">📻</div>
@@ -252,14 +262,7 @@
                 </div>
             </div>
         </div>
-        <div id="download-btn" class="menu-item"><i data-lucide="download"></i>
-            <div id="download-box" class="expandable expand-down">
-                <div class="expandable-content">
-                    <div class="sub-icon" title="Opslaan als PDF" onclick="window.print()"><i data-lucide="file-text"></i></div>
-                    <div class="sub-icon" title="Opslaan als PNG" onclick="exportAsPNG()"><i data-lucide="image"></i></div>
-                </div>
-            </div>
-        </div>
+        <div id="print-btn" class="menu-item" onclick="window.print()"><i data-lucide="printer"></i></div>
     </div>
 
     <script>
@@ -274,10 +277,13 @@
         setFavicon();
         lucide.createIcons();
 
-        function closePopup() { document.getElementById('welcome-popup').style.display = 'none'; }
+        function closePopup() {
+            document.getElementById('welcome-popup').style.display = 'none';
+        }
 
         let currentSunriseAngle = 90, currentSunsetAngle = 270, activeElement = null, startX, startY, elemStartX, elemStartY, isDragging = false, isSpawning = false;
         let isPanning = false, panTimer = null, currentPanX = 0, currentPanY = 0, startPanX = 0, startPanY = 0;
+
         const menu = document.getElementById("draggable-menu");
         const universe = document.getElementById("universe");
         const zoomWrapper = document.getElementById("zoom-wrapper");
@@ -309,7 +315,7 @@
             updateColors(); saveState();
         }
 
-        const btns = ["add-btn", "palette-btn", "zoom-btn", "download-btn"];
+        const btns = ["add-btn", "palette-btn", "zoom-btn"];
         btns.forEach(id => {
             document.getElementById(id).addEventListener('click', (e) => {
                 if (isDragging || isPanning) return;
@@ -329,6 +335,7 @@
         });
 
         document.addEventListener('click', (e) => { if (!e.target.closest('#draggable-menu')) btns.forEach(b => document.getElementById(b).classList.remove('active')); });
+
         const zoomSlider = document.getElementById("zoom-slider");
         zoomSlider.addEventListener('input', (e) => { document.documentElement.style.setProperty('--zoom-level', e.target.value); saveState(); });
 
@@ -343,14 +350,10 @@
                 }, 500);
                 return;
             }
-            isDragging = false; isSpawning = false;
-            activeElement = target; activeElement.classList.add('dragging'); 
+            isDragging = false; isSpawning = false; activeElement = target; activeElement.classList.add('dragging'); 
             if (activeElement !== menu) zoomWrapper.classList.add('top-layer');
             if (activeElement === menu) { elemStartX = activeElement.offsetLeft; elemStartY = activeElement.offsetTop; }
-            else { const r = activeElement.getBoundingClientRect(), cr = stickersLayer.getBoundingClientRect();
-                elemStartX = ((r.left + r.width/2 - cr.left) / cr.width) * 100;
-                elemStartY = ((r.top + r.height/2 - cr.top) / cr.height) * 100;
-            }
+            else { const r = activeElement.getBoundingClientRect(), cr = stickersLayer.getBoundingClientRect(); elemStartX = ((r.left + r.width/2 - cr.left) / cr.width) * 100; elemStartY = ((r.top + r.height/2 - cr.top) / cr.height) * 100; }
         }
 
         function moveDragging(e) {
@@ -366,10 +369,7 @@
             if (Math.abs(dx) > 5 || Math.abs(dy) > 5) isDragging = true;
             if (activeElement === menu) { menu.style.left = (elemStartX + dx) + "px"; menu.style.top = (elemStartY + dy) + "px"; updateMenuDynamics(); }
             else if (isSpawning) { activeElement.style.left = touch.clientX + "px"; activeElement.style.top = touch.clientY + "px"; }
-            else { const cr = stickersLayer.getBoundingClientRect();
-                activeElement.style.left = (elemStartX + (dx / cr.width) * 100) + "%";
-                activeElement.style.top = (elemStartY + (dy / cr.height) * 100) + "%"; updateIconBorder(activeElement);
-            }
+            else { const cr = stickersLayer.getBoundingClientRect(); activeElement.style.left = (elemStartX + (dx / cr.width) * 100) + "%"; activeElement.style.top = (elemStartY + (dy / cr.height) * 100) + "%"; updateIconBorder(activeElement); }
         }
 
         function endDragging() { 
@@ -377,8 +377,7 @@
             if (isPanning) { isPanning = false; document.body.style.cursor = 'default'; saveState(); return; }
             if (activeElement) {
                 if (isSpawning) {
-                    const cr = stickersLayer.getBoundingClientRect();
-                    const rect = activeElement.getBoundingClientRect();
+                    const cr = stickersLayer.getBoundingClientRect(); const rect = activeElement.getBoundingClientRect();
                     const centerX = rect.left + rect.width / 2; const centerY = rect.top + rect.height / 2;
                     activeElement.style.width = "9%"; activeElement.style.height = "9%";
                     activeElement.style.left = (((centerX - cr.left) / cr.width) * 100) + "%";
@@ -390,14 +389,12 @@
             activeElement = null; isSpawning = false;
         }
 
-        function initDragSpawn(event, emoji) {
-            event.preventDefault(); event.stopPropagation();
-            const touch = event.type.startsWith("touch") ? event.touches[0] : event;
+        function initDragSpawn(e, emoji) {
+            e.preventDefault(); e.stopPropagation();
+            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
             const uniRect = universe.getBoundingClientRect();
-            const div = document.createElement('div');
-            div.className = 'dropped-icon dragging'; div.innerText = emoji;
-            div.style.width = (uniRect.width * 0.09) + "px";
-            div.style.height = (uniRect.width * 0.09) + "px";
+            const div = document.createElement('div'); div.className = 'dropped-icon dragging'; div.innerText = emoji;
+            div.style.width = (uniRect.width * 0.09) + "px"; div.style.height = (uniRect.width * 0.09) + "px";
             div.style.left = touch.clientX + "px"; div.style.top = touch.clientY + "px";
             document.body.appendChild(div);
             div.onclick = (ev) => { if(!isDragging) { div.remove(); saveState(); } ev.stopPropagation(); };
@@ -415,20 +412,16 @@
             if (!hexcolor) return 'black';
             let r, g, b;
             if (hexcolor.startsWith('rgb')) {
-                const colors = hexcolor.match(/\d+/g);
-                r = parseInt(colors[0]); g = parseInt(colors[1]); b = parseInt(colors[2]);
+                const colors = hexcolor.match(/\d+/g); r = parseInt(colors[0]); g = parseInt(colors[1]); b = parseInt(colors[2]);
             } else {
-                hexcolor = hexcolor.replace("#", "");
-                r = parseInt(hexcolor.substr(0,2),16); g = parseInt(hexcolor.substr(2,2),16); b = parseInt(hexcolor.substr(4,2),16);
+                hexcolor = hexcolor.replace("#", ""); r = parseInt(hexcolor.substr(0,2),16); g = parseInt(hexcolor.substr(2,2),16); b = parseInt(hexcolor.substr(4,2),16);
             }
             return (((r*299)+(g*587)+(b*114))/1000 >= 128) ? 'black' : 'white';
         }
 
         function updateIconBorder(icon) {
-            const rect = icon.getBoundingClientRect();
-            const cr = universe.getBoundingClientRect();
-            const x = (rect.left + rect.width / 2) - (cr.left + cr.width / 2);
-            const y = (rect.top + rect.height / 2) - (cr.top + cr.height / 2);
+            const rect = icon.getBoundingClientRect(); const cr = universe.getBoundingClientRect();
+            const x = (rect.left + rect.width / 2) - (cr.left + cr.width / 2); const y = (rect.top + rect.height / 2) - (cr.top + cr.height / 2);
             let angle = (Math.atan2(y, x) * (180 / Math.PI) + 360 + 90) % 360;
             const dayColor = getComputedStyle(document.documentElement).getPropertyValue('--day-color').trim();
             const nightColor = getComputedStyle(document.documentElement).getPropertyValue('--night-color').trim();
@@ -462,8 +455,7 @@
         }
 
         function drawClock(offset = 0) {
-            const container = document.getElementById("ticks-container");
-            container.innerHTML = ''; 
+            const container = document.getElementById("ticks-container"); container.innerHTML = ''; 
             for (let i = 0; i < 24; i++) {
                 const angle = ((i-12)*15)+offset;
                 const wrapper = document.createElement('div'); wrapper.className = 'hour-tick';
@@ -481,18 +473,9 @@
             updateColors();
         }
 
-        // Verbeterde Locatie Functie (Geforceerd)
         function getSolarData() {
-            if (!navigator.geolocation) {
-                console.log("Geolocatie wordt niet ondersteund.");
-                drawClock(0);
-                return;
-            }
-
-            const options = { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 };
-
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
                     fetch(`https://api.sunrise-sunset.org/json?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&formatted=0`)
                     .then(r => r.json()).then(data => {
                         const noon = new Date(data.results.solar_noon);
@@ -506,16 +489,8 @@
                         document.getElementById("day-path").setAttribute("d", `M 50 50 L ${start.x} ${start.y} A 50 50 0 ${((currentSunsetAngle - currentSunriseAngle + 360) % 360 <= 180 ? "0" : "1")} 1 ${end.x} ${end.y} Z`);
                         updateColors();
                     });
-                },
-                (err) => {
-                    console.warn(`Locatiefout (${err.code}): ${err.message}`);
-                    if (err.code === 1) {
-                        alert("Locatietoegang is essentieel om de juiste dag/nacht-verdeling te tonen voor jouw plek op aarde. Sta dit a.u.b. toe in de browserinstellingen.");
-                    }
-                    drawClock(0);
-                },
-                options
-            );
+                }, () => drawClock(0));
+            } else drawClock(0);
         }
 
         function saveState() {
@@ -531,10 +506,8 @@
         }
 
         function loadState() {
-            const zl = localStorage.getItem('zoomLevel');
-            if (zl) { zoomSlider.value = zl; document.documentElement.style.setProperty('--zoom-level', zl); }
-            const pp = JSON.parse(localStorage.getItem('panPos'));
-            if (pp) { currentPanX = pp.x; currentPanY = pp.y; document.documentElement.style.setProperty('--pan-x', currentPanX); document.documentElement.style.setProperty('--pan-y', currentPanY); }
+            const zl = localStorage.getItem('zoomLevel'); if (zl) { zoomSlider.value = zl; document.documentElement.style.setProperty('--zoom-level', zl); }
+            const pp = JSON.parse(localStorage.getItem('panPos')); if (pp) { currentPanX = pp.x; currentPanY = pp.y; document.documentElement.style.setProperty('--pan-x', currentPanX); document.documentElement.style.setProperty('--pan-y', currentPanY); }
             JSON.parse(localStorage.getItem('universeIcons') || "[]").forEach(d => {
                 const div = document.createElement('div'); div.className = 'dropped-icon'; div.innerText = d.text; div.style.left = d.left; div.style.top = d.top;
                 div.onclick = (e) => { if(!isDragging) { div.remove(); saveState(); } e.stopPropagation(); };
@@ -552,24 +525,8 @@
             else if (ageDays < 16.61) moonEl.classList.add('moon-full');
             else moonEl.classList.add('moon-last-quarter');
         }
-
-        function exportAsPNG() {
-            const menuEl = document.getElementById('draggable-menu');
-            menuEl.style.display = 'none';
-            html2canvas(document.body, {
-                backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--theme-color'),
-                scale: 2
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'Hemelplanner.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                menuEl.style.display = 'flex';
-            });
-        }
         
-        loadState();
-        setMoonPhase(); setInterval(setMoonPhase, 3600000);
+        loadState(); setMoonPhase(); setInterval(setMoonPhase, 3600000);
     </script>
 </body>
 </html>

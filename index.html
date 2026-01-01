@@ -78,7 +78,6 @@
         .popup-content ol { padding-left: 20px; line-height: 1.6; }
         .popup-content li { margin-bottom: 10px; }
 
-        /* Rest van de bestaande styles */
         .zoom-wrapper {
             position: relative;
             display: flex; justify-content: center; align-items: center;
@@ -145,7 +144,48 @@
         .dropped-icon { position: absolute; width: 9%; height: 9%; background-color: var(--icon-bg); color: var(--text-contrast); border: 1px solid transparent; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: grab; pointer-events: auto; font-size: 4vmin; transform: translate(-50%, -50%); z-index: 100; }
         .dragging { z-index: 6000 !important; }
         .color-input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-        @media print { #draggable-menu, #welcome-popup { display: none; } body { background-color: var(--theme-color) !important; } }
+
+        /* PRINT SETTINGS */
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            body, html { 
+                background-color: var(--theme-color) !important; 
+            }
+
+            #draggable-menu, #welcome-popup { 
+                display: none !important; 
+            }
+
+            .sun svg {
+                fill: var(--celestial-contrast) !important;
+            }
+            .sun svg line {
+                stroke: var(--celestial-contrast) !important;
+            }
+
+            .moon-container {
+                border-color: var(--celestial-contrast) !important;
+                background-color: white !important;
+            }
+            .moon-new {
+                background-color: black !important;
+            }
+            .moon-first-quarter::after, .moon-last-quarter::after {
+                background-color: black !important;
+            }
+            
+            /* Zorg dat stickers ook zichtbaar blijven */
+            .dropped-icon {
+                background-color: var(--icon-bg) !important;
+                color: var(--text-contrast) !important;
+                border-color: inherit !important;
+            }
+        }
     </style>
 </head>
 <body>

@@ -124,12 +124,6 @@
             color: white; cursor: pointer; overflow: hidden; position: relative;
         }
 
-        /* FIX: Zorg dat het icoontje geen kliks opvangt */
-        .sub-icon i {
-            pointer-events: none;
-            z-index: 1;
-        }
-
         .dropped-icon {
             position: absolute; width: 7vmin; height: 7vmin;
             background-color: var(--icon-bg); color: var(--text-contrast); 
@@ -141,15 +135,15 @@
 
         .spawning { z-index: 2000 !important; }
 
-        /* FIX: Maak de input de baas over het hele rondje */
+        /* AANGEPAST VOOR MOBIEL */
         .color-input { 
             position: absolute; 
             top: 0; left: 0;
-            opacity: 0; 
+            opacity: 0.01; 
             width: 100%; height: 100%; 
             cursor: pointer; 
-            pointer-events: auto; 
             z-index: 10;
+            -webkit-appearance: none;
         }
 
         @media print {
@@ -182,10 +176,10 @@
             <i data-lucide="palette"></i>
             <div id="palette-box" class="expandable expand-down">
                 <div class="expandable-content">
-                    <label class="sub-icon" for="bg-color-pick"><i data-lucide="brush"></i><input type="color" class="color-input" id="bg-color-pick"></label>
-                    <label class="sub-icon" for="icon-color-pick"><i data-lucide="zap"></i><input type="color" class="color-input" id="icon-color-pick"></label>
-                    <label class="sub-icon" for="day-color-pick"><i data-lucide="sun"></i><input type="color" class="color-input" id="day-color-pick"></label>
-                    <label class="sub-icon" for="night-color-pick"><i data-lucide="moon"></i><input type="color" class="color-input" id="night-color-pick"></label>
+                    <label class="sub-icon"><i data-lucide="brush"></i><input type="color" class="color-input" id="bg-color-pick"></label>
+                    <label class="sub-icon"><i data-lucide="zap"></i><input type="color" class="color-input" id="icon-color-pick"></label>
+                    <label class="sub-icon"><i data-lucide="sun"></i><input type="color" class="color-input" id="day-color-pick"></label>
+                    <label class="sub-icon"><i data-lucide="moon"></i><input type="color" class="color-input" id="night-color-pick"></label>
                 </div>
             </div>
         </div>
@@ -227,7 +221,6 @@
         function updateIconBorder(icon) {
             const rect = icon.getBoundingClientRect();
             const containerRect = universe.getBoundingClientRect();
-            
             const centerX = containerRect.left + containerRect.width / 2;
             const centerY = containerRect.top + containerRect.height / 2;
             const x = (rect.left + rect.width / 2) - centerX;
@@ -288,12 +281,17 @@
             return s <= e ? (t >= s && t <= e) : (t >= s || t <= e);
         }
 
+        // VERBETERDE COLOR PICKER LOGIC VOOR MOBIEL
         const colorPicks = {'bg-color-pick': '--theme-color', 'icon-color-pick': '--icon-bg', 'day-color-pick': '--day-color', 'night-color-pick': '--night-color'};
         Object.entries(colorPicks).forEach(([id, prop]) => {
             const el = document.getElementById(id);
-            // Fix voor mobiel: Stop propagatie zodat drag-script niet afgaat
-            el.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
-            el.addEventListener('mousedown', (e) => e.stopPropagation());
+            
+            const stopAndOpen = (e) => {
+                e.stopPropagation();
+            };
+            
+            el.addEventListener('touchstart', stopAndOpen);
+            el.addEventListener('mousedown', stopAndOpen);
             
             el.addEventListener('input', (e) => {
                 document.documentElement.style.setProperty(prop, e.target.value);
@@ -310,9 +308,11 @@
         document.addEventListener('click', () => { document.getElementById("add-btn").classList.remove('active'); document.getElementById("palette-btn").classList.remove('active'); });
 
         function startDragging(e) {
+            // Als we op een input klikken, start dan GEEN drag
+            if (e.target.classList.contains('color-input')) return;
+
             const target = e.target.closest('#draggable-menu, .dropped-icon');
-            // Als we op een kleuren input klikken, NOOIT gaan slepen
-            if (!target || e.target.classList.contains('color-input')) return;
+            if (!target || e.target.closest('.expandable-content')) return;
             
             isDragging = false; activeElement = target;
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;

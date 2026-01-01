@@ -390,9 +390,9 @@
             activeElement = null; isSpawning = false;
         }
 
-        function initDragSpawn(e, emoji) {
-            e.preventDefault(); e.stopPropagation();
-            const touch = e.type.startsWith("touch") ? e.touches[0] : e;
+        function initDragSpawn(event, emoji) {
+            event.preventDefault(); event.stopPropagation();
+            const touch = event.type.startsWith("touch") ? event.touches[0] : event;
             const uniRect = universe.getBoundingClientRect();
             const div = document.createElement('div');
             div.className = 'dropped-icon dragging'; div.innerText = emoji;
@@ -481,9 +481,18 @@
             updateColors();
         }
 
+        // Verbeterde Locatie Functie (Geforceerd)
         function getSolarData() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
+            if (!navigator.geolocation) {
+                console.log("Geolocatie wordt niet ondersteund.");
+                drawClock(0);
+                return;
+            }
+
+            const options = { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 };
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
                     fetch(`https://api.sunrise-sunset.org/json?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&formatted=0`)
                     .then(r => r.json()).then(data => {
                         const noon = new Date(data.results.solar_noon);
@@ -497,8 +506,16 @@
                         document.getElementById("day-path").setAttribute("d", `M 50 50 L ${start.x} ${start.y} A 50 50 0 ${((currentSunsetAngle - currentSunriseAngle + 360) % 360 <= 180 ? "0" : "1")} 1 ${end.x} ${end.y} Z`);
                         updateColors();
                     });
-                }, () => drawClock(0));
-            } else drawClock(0);
+                },
+                (err) => {
+                    console.warn(`Locatiefout (${err.code}): ${err.message}`);
+                    if (err.code === 1) {
+                        alert("Locatietoegang is essentieel om de juiste dag/nacht-verdeling te tonen voor jouw plek op aarde. Sta dit a.u.b. toe in de browserinstellingen.");
+                    }
+                    drawClock(0);
+                },
+                options
+            );
         }
 
         function saveState() {
@@ -536,22 +553,18 @@
             else moonEl.classList.add('moon-last-quarter');
         }
 
-        // Functie voor PNG Export
         function exportAsPNG() {
-            // Verberg menu tijdelijk
-            menu.style.display = 'none';
-            
+            const menuEl = document.getElementById('draggable-menu');
+            menuEl.style.display = 'none';
             html2canvas(document.body, {
                 backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--theme-color'),
-                scale: 2 // Hogere kwaliteit
+                scale: 2
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = 'Hemelplanner.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                
-                // Toon menu weer
-                menu.style.display = 'flex';
+                menuEl.style.display = 'flex';
             });
         }
         

@@ -127,7 +127,7 @@
         .dropped-icon {
             position: absolute; width: 7vmin; height: 7vmin;
             background-color: var(--icon-bg); color: var(--text-contrast); 
-            border: 1px solid transparent; 
+            border: 1px solid transparent;
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
             cursor: grab; z-index: 500; font-size: 3.5vmin; transform: translate(-50%, -50%);
             box-sizing: border-box;
@@ -135,15 +135,9 @@
 
         .spawning { z-index: 2000 !important; }
 
-        /* AANGEPAST VOOR MOBIEL */
         .color-input { 
-            position: absolute; 
-            top: 0; left: 0;
-            opacity: 0.01; 
-            width: 100%; height: 100%; 
-            cursor: pointer; 
-            z-index: 10;
-            -webkit-appearance: none;
+            position: absolute; opacity: 0; width: 100%; height: 100%; 
+            cursor: pointer; pointer-events: auto; 
         }
 
         @media print {
@@ -221,6 +215,7 @@
         function updateIconBorder(icon) {
             const rect = icon.getBoundingClientRect();
             const containerRect = universe.getBoundingClientRect();
+            
             const centerX = containerRect.left + containerRect.width / 2;
             const centerY = containerRect.top + containerRect.height / 2;
             const x = (rect.left + rect.width / 2) - centerX;
@@ -281,17 +276,11 @@
             return s <= e ? (t >= s && t <= e) : (t >= s || t <= e);
         }
 
-        // VERBETERDE COLOR PICKER LOGIC VOOR MOBIEL
         const colorPicks = {'bg-color-pick': '--theme-color', 'icon-color-pick': '--icon-bg', 'day-color-pick': '--day-color', 'night-color-pick': '--night-color'};
         Object.entries(colorPicks).forEach(([id, prop]) => {
             const el = document.getElementById(id);
-            
-            const stopAndOpen = (e) => {
-                e.stopPropagation();
-            };
-            
-            el.addEventListener('touchstart', stopAndOpen);
-            el.addEventListener('mousedown', stopAndOpen);
+            el.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
+            el.addEventListener('mousedown', (e) => e.stopPropagation());
             
             el.addEventListener('input', (e) => {
                 document.documentElement.style.setProperty(prop, e.target.value);
@@ -303,17 +292,33 @@
         const menu = document.getElementById("draggable-menu");
         const universe = document.getElementById("universe");
 
-        document.getElementById("add-btn").addEventListener('click', (e) => { e.stopPropagation(); document.getElementById("add-btn").classList.toggle('active'); document.getElementById("palette-btn").classList.remove('active'); });
-        document.getElementById("palette-btn").addEventListener('click', (e) => { e.stopPropagation(); document.getElementById("palette-btn").classList.toggle('active'); document.getElementById("add-btn").classList.remove('active'); });
-        document.addEventListener('click', () => { document.getElementById("add-btn").classList.remove('active'); document.getElementById("palette-btn").classList.remove('active'); });
+        // Gecorrigeerde Menu Logica voor mobiele color pickers
+        document.getElementById("add-btn").addEventListener('click', (e) => { 
+            if (isDragging) return;
+            e.stopPropagation(); 
+            document.getElementById("add-btn").classList.toggle('active'); 
+            document.getElementById("palette-btn").classList.remove('active'); 
+        });
+
+        document.getElementById("palette-btn").addEventListener('click', (e) => { 
+            if (isDragging) return;
+            if (!e.target.closest('.expandable-content')) {
+                e.stopPropagation(); 
+                document.getElementById("palette-btn").classList.toggle('active'); 
+                document.getElementById("add-btn").classList.remove('active'); 
+            }
+        });
+
+        document.addEventListener('click', (e) => { 
+            if (!e.target.closest('#draggable-menu')) {
+                document.getElementById("add-btn").classList.remove('active'); 
+                document.getElementById("palette-btn").classList.remove('active'); 
+            }
+        });
 
         function startDragging(e) {
-            // Als we op een input klikken, start dan GEEN drag
-            if (e.target.classList.contains('color-input')) return;
-
             const target = e.target.closest('#draggable-menu, .dropped-icon');
             if (!target || e.target.closest('.expandable-content')) return;
-            
             isDragging = false; activeElement = target;
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
             startX = touch.clientX; startY = touch.clientY;
@@ -427,11 +432,16 @@
             localStorage.setItem('universeIcons', JSON.stringify(icons));
             localStorage.setItem('themeColor', getComputedStyle(document.documentElement).getPropertyValue('--theme-color'));
             localStorage.setItem('iconBg', getComputedStyle(document.documentElement).getPropertyValue('--icon-bg'));
+            localStorage.setItem('dayColor', getComputedStyle(document.documentElement).getPropertyValue('--day-color'));
+            localStorage.setItem('nightColor', getComputedStyle(document.documentElement).getPropertyValue('--night-color'));
         }
 
         function loadState() {
             const tc = localStorage.getItem('themeColor'); if (tc) document.documentElement.style.setProperty('--theme-color', tc);
             const ib = localStorage.getItem('iconBg'); if (ib) document.documentElement.style.setProperty('--icon-bg', ib);
+            const dc = localStorage.getItem('dayColor'); if (dc) document.documentElement.style.setProperty('--day-color', dc);
+            const nc = localStorage.getItem('nightColor'); if (nc) document.documentElement.style.setProperty('--night-color', nc);
+            
             const savedIcons = JSON.parse(localStorage.getItem('universeIcons') || "[]");
             savedIcons.forEach(d => {
                 const div = document.createElement('div'); div.className = 'dropped-icon'; div.innerText = d.text;

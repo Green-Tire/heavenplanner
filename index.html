@@ -113,8 +113,6 @@
         .expandable-content {
             background: rgba(20, 20, 20, 0.95); padding: 10px; border-radius: 15px;
             display: grid; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
-            /* Zorg dat clicks hierin niet door het menu worden afgevangen */
-            cursor: default;
         }
 
         #palette-box .expandable-content { grid-template-columns: repeat(2, 1fr); }
@@ -124,6 +122,12 @@
             width: 35px; height: 35px; background: rgba(255, 255, 255, 0.2);
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
             color: white; cursor: pointer; overflow: hidden; position: relative;
+        }
+
+        /* FIX: Zorg dat het icoontje geen kliks opvangt */
+        .sub-icon i {
+            pointer-events: none;
+            z-index: 1;
         }
 
         .dropped-icon {
@@ -137,14 +141,15 @@
 
         .spawning { z-index: 2000 !important; }
 
-        /* Mobile fix voor inputs: hoog z-index en touch-action */
+        /* FIX: Maak de input de baas over het hele rondje */
         .color-input { 
-            position: absolute; top: 0; left: 0;
-            opacity: 0; width: 100%; height: 100%; 
+            position: absolute; 
+            top: 0; left: 0;
+            opacity: 0; 
+            width: 100%; height: 100%; 
             cursor: pointer; 
-            pointer-events: auto;
-            z-index: 50; /* Zeker weten boven het icoontje */
-            touch-action: manipulation; /* Voorkomt inzoomen/scrollen vertraging */
+            pointer-events: auto; 
+            z-index: 10;
         }
 
         @media print {
@@ -176,18 +181,18 @@
         <div id="palette-btn" class="menu-item">
             <i data-lucide="palette"></i>
             <div id="palette-box" class="expandable expand-down">
-                <div class="expandable-content safe-zone">
-                    <label class="sub-icon"><i data-lucide="brush"></i><input type="color" class="color-input" id="bg-color-pick"></label>
-                    <label class="sub-icon"><i data-lucide="zap"></i><input type="color" class="color-input" id="icon-color-pick"></label>
-                    <label class="sub-icon"><i data-lucide="sun"></i><input type="color" class="color-input" id="day-color-pick"></label>
-                    <label class="sub-icon"><i data-lucide="moon"></i><input type="color" class="color-input" id="night-color-pick"></label>
+                <div class="expandable-content">
+                    <label class="sub-icon" for="bg-color-pick"><i data-lucide="brush"></i><input type="color" class="color-input" id="bg-color-pick"></label>
+                    <label class="sub-icon" for="icon-color-pick"><i data-lucide="zap"></i><input type="color" class="color-input" id="icon-color-pick"></label>
+                    <label class="sub-icon" for="day-color-pick"><i data-lucide="sun"></i><input type="color" class="color-input" id="day-color-pick"></label>
+                    <label class="sub-icon" for="night-color-pick"><i data-lucide="moon"></i><input type="color" class="color-input" id="night-color-pick"></label>
                 </div>
             </div>
         </div>
         <div id="add-btn" class="menu-item">
             <i data-lucide="plus"></i>
             <div id="expand-box" class="expandable expand-down">
-                <div class="expandable-content safe-zone" id="sub-menu">
+                <div class="expandable-content" id="sub-menu">
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '⏰')" ontouchstart="initDragSpawn(event, '⏰')">⏰</div>
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '📻')" ontouchstart="initDragSpawn(event, '📻')">📻</div>
                     <div class="sub-icon" onmousedown="initDragSpawn(event, '🕌')" ontouchstart="initDragSpawn(event, '🕌')">🕌</div>
@@ -286,18 +291,14 @@
         const colorPicks = {'bg-color-pick': '--theme-color', 'icon-color-pick': '--icon-bg', 'day-color-pick': '--day-color', 'night-color-pick': '--night-color'};
         Object.entries(colorPicks).forEach(([id, prop]) => {
             const el = document.getElementById(id);
+            // Fix voor mobiel: Stop propagatie zodat drag-script niet afgaat
+            el.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
+            el.addEventListener('mousedown', (e) => e.stopPropagation());
+            
             el.addEventListener('input', (e) => {
                 document.documentElement.style.setProperty(prop, e.target.value);
                 updateColors(); saveState();
             });
-        });
-
-        // SAFE ZONE LOGIC: Voorkomt dat sleep-events de kleurenkiezer storen
-        document.querySelectorAll('.safe-zone').forEach(zone => {
-            // Stop propagatie van events zodat de dragger ze niet ziet
-            // Maar: we laten de 'click' wel door voor de input
-            zone.addEventListener('mousedown', (e) => e.stopPropagation());
-            zone.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
         });
 
         let activeElement = null, startX, startY, elemStartX, elemStartY, isDragging = false;
@@ -309,12 +310,9 @@
         document.addEventListener('click', () => { document.getElementById("add-btn").classList.remove('active'); document.getElementById("palette-btn").classList.remove('active'); });
 
         function startDragging(e) {
-            // Als we op een input klikken (kleur), DOE NIETS en laat de browser het afhandelen
-            if (e.target.tagName === 'INPUT') return;
-
             const target = e.target.closest('#draggable-menu, .dropped-icon');
-            // Extra check: als we in de content zone zitten, ook niet slepen
-            if (!target || e.target.closest('.expandable-content')) return;
+            // Als we op een kleuren input klikken, NOOIT gaan slepen
+            if (!target || e.target.classList.contains('color-input')) return;
             
             isDragging = false; activeElement = target;
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;

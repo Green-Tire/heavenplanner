@@ -88,7 +88,8 @@
             display: flex; justify-content: center; align-items: center; flex-shrink: 0; z-index: 1;
         }
 
-        #stickers-layer { position: absolute; top: 50%; left: 50%; width: 85vmin; height: 85vmin; transform: translate(-50%, -50%); pointer-events: none; z-index: 30; }
+        #stickers-layer { position: absolute; top: 50%; left: 50%; width: 85vmin; height: 85vmin;
+        transform: translate(-50%, -50%); pointer-events: none; z-index: 30; }
 
         #dual-circle {
             position: absolute;
@@ -98,7 +99,8 @@
             overflow: visible;
         }
 
-        .sun { position: absolute; z-index: 5; left: 50%; transform: translateX(-50%); top: -18%; width: 15%; height: 15%; }
+        .sun { position: absolute; z-index: 5; left: 50%; transform: translateX(-50%); top: -18%;
+        width: 15%; height: 15%; }
         .sun svg { width: 100%; height: 100%; fill: var(--celestial-contrast); }
         .sun svg line { stroke: var(--celestial-contrast); }
         
@@ -127,12 +129,14 @@
         }
 
         #draggable-menu.mirrored { flex-direction: row-reverse; }
-        .menu-item { position: relative; width: 40px; height: 40px; background: var(--menu-item-bg); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--menu-text); cursor: pointer; }
+        .menu-item { position: relative; width: 40px; height: 40px; background: var(--menu-item-bg); border-radius: 50%;
+        display: flex; justify-content: center; align-items: center; color: var(--menu-text); cursor: pointer; }
         .expandable { display: none; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5100; }
         .expand-down { top: 100%; padding-top: 10px; }
         .expand-up { bottom: 100%; padding-bottom: 10px; }
         .menu-item.active .expandable { display: block; }
-        .expandable-content { background: rgba(20, 20, 20, 0.95); padding: 12px; border-radius: 15px; display: grid; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.2); min-width: 40px; }
+        .expandable-content { background: rgba(20, 20, 20, 0.95); padding: 12px; border-radius: 15px;
+        display: grid; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.2); min-width: 40px; }
         #palette-box .expandable-content { grid-template-columns: repeat(2, 1fr); }
         #expand-box .expandable-content { grid-template-columns: repeat(3, 1fr); }
         #download-box .expandable-content { grid-template-columns: repeat(2, 1fr); }
@@ -147,6 +151,7 @@
             cursor: grab; pointer-events: auto;
             font-size: 4vmin; transform: translate(-50%, -50%); z-index: 100; 
             box-sizing: border-box;
+            touch-action: none;
         }
 
         .sticker-group {
@@ -159,13 +164,10 @@
             width: 17% !important; 
             height: 17% !important;
             aspect-ratio: 1 / 1;
-            min-width: unset !important;
-            min-height: unset !important;
-            max-width: unset !important;
         }
 
-        .group-emoji { font-size: 4vmin; line-height: 1; flex-shrink: 0; cursor: pointer; }
-        .dragging { z-index: 6000 !important; }
+        .group-emoji { font-size: 4vmin; line-height: 1; flex-shrink: 0; cursor: pointer; pointer-events: auto; }
+        .dragging { z-index: 6000 !important; cursor: grabbing; }
         .color-input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
         @media print {
@@ -192,7 +194,7 @@
                 <li>Verwijder stickers door erop te klikken.</li>
                 <li>Groepeer stickers door ze op elkaar te slepen.</li>
                 <li>Beweeg je planner door langer te drukken.</li>
-                <li>Dag, nacht en de maanstand worden live berekend op basis van je tijd en locatie.</li>
+                <li>Tijd en locatie worden live berekend.</li>
             </ol>
         </div>
     </div>
@@ -201,7 +203,7 @@
         <div class="popup-content">
             <div class="popup-close" onclick="document.getElementById('location-popup').style.display = 'none'"><i data-lucide="x"></i></div>
             <p style="text-align: center; margin-top: 10px; font-size: 1.1rem;">
-                Je locatie kan helaas niet worden opgehaald. Probeer een privétablad of een andere browser.
+                Je locatie kan helaas niet worden opgehaald.
             </p>
         </div>
     </div>
@@ -212,7 +214,6 @@
                 <circle cx="50" cy="50" r="50" id="night-path" fill="var(--night-color)" />
                 <path id="day-path" fill="var(--day-color)" />
             </svg>
-            <div id="solar-lines-container"></div>
             <div id="ticks-container"></div>
             <div class="sun">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" stroke-width="2" /><line x1="12" y1="21" x2="12" y2="23" stroke-width="2" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke-width="2" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke-width="2" /><line x1="1" y1="12" x2="3" y2="12" stroke-width="2" /><line x1="21" y1="12" x2="23" y2="12" stroke-width="2" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke-width="2" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke-width="2" /></svg>
@@ -282,8 +283,7 @@
             const blob = new Blob([sunIcon], {type: 'image/svg+xml'});
             const url = URL.createObjectURL(blob);
             const link = document.createElement('link');
-            link.rel = 'icon';
-            link.href = url; document.head.appendChild(link);
+            link.rel = 'icon'; link.href = url; document.head.appendChild(link);
         }
         setFavicon(); lucide.createIcons();
 
@@ -357,6 +357,7 @@
             const target = e.target.closest('#draggable-menu, .dropped-icon');
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
             startX = touch.clientX; startY = touch.clientY;
+            
             if (!target || e.target.closest('.expandable-content') || e.target.classList.contains('group-emoji')) {
                 panTimer = setTimeout(() => { isPanning = true; startPanX = touch.clientX - currentPanX; startPanY = touch.clientY - currentPanY; document.body.style.cursor = 'grabbing'; }, 500);
                 return;
@@ -375,10 +376,10 @@
         function moveDragging(e) {
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
             const dx = touch.clientX - startX, dy = touch.clientY - startY;
+            
             if (!isPanning && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) clearTimeout(panTimer);
             if (isPanning) { 
-                currentPanX = touch.clientX - startPanX;
-                currentPanY = touch.clientY - startPanY;
+                currentPanX = touch.clientX - startPanX; currentPanY = touch.clientY - startPanY;
                 document.documentElement.style.setProperty('--pan-x', currentPanX); 
                 document.documentElement.style.setProperty('--pan-y', currentPanY); return;
             }
@@ -394,20 +395,23 @@
         }
 
         function handleEmojiRemove(emojiSpan, groupDiv) {
+            if (isDragging) return;
             emojiSpan.remove();
             const remaining = groupDiv.querySelectorAll('.group-emoji');
             if (remaining.length === 1) {
                 const newIcon = createNormalSticker(remaining[0].innerText, groupDiv.style.left, groupDiv.style.top);
                 stickersLayer.appendChild(newIcon); groupDiv.remove(); updateIconBorder(newIcon);
-            } else if (remaining.length === 0) { groupDiv.remove(); } 
-            else { updateIconBorder(groupDiv); }
+            } else if (remaining.length === 0) { groupDiv.remove(); } else { updateIconBorder(groupDiv); }
             saveState();
         }
 
         function createNormalSticker(emoji, left, top) {
             const div = document.createElement('div');
             div.className = 'dropped-icon'; div.innerText = emoji; div.style.left = left; div.style.top = top;
-            div.onclick = (e) => { e.stopPropagation(); if(!isDragging) { div.remove(); saveState(); } };
+            div.onclick = (e) => { 
+                e.stopPropagation();
+                if(!isDragging) { div.remove(); saveState(); } 
+            };
             return div;
         }
 
@@ -430,8 +434,7 @@
                         emoji1.onclick = (e) => { e.stopPropagation(); handleEmojiRemove(emoji1, newGroup); };
                         newGroup.appendChild(emoji1); stickersLayer.appendChild(newGroup); targetGroup.remove(); targetGroup = newGroup;
                     }
-                    const emoji2 = document.createElement('span');
-                    emoji2.className = 'group-emoji'; emoji2.innerText = activeElement.innerText;
+                    const emoji2 = document.createElement('span'); emoji2.className = 'group-emoji'; emoji2.innerText = activeElement.innerText;
                     emoji2.onclick = (e) => { e.stopPropagation(); handleEmojiRemove(emoji2, targetGroup); };
                     targetGroup.appendChild(emoji2); activeElement.remove(); updateIconBorder(targetGroup);
                 } else if (isSpawning) {
@@ -448,7 +451,6 @@
         }
 
         function initDragSpawn(e, emoji) {
-            e.preventDefault(); e.stopPropagation();
             const touch = e.type.startsWith("touch") ? e.touches[0] : e, uniRect = universe.getBoundingClientRect();
             const div = createNormalSticker(emoji, touch.clientX + "px", touch.clientY + "px");
             div.classList.add('dragging'); div.style.width = (uniRect.width * 0.09) + "px"; div.style.height = (uniRect.width * 0.09) + "px";
@@ -474,9 +476,8 @@
             const rect = icon.getBoundingClientRect(), cr = universe.getBoundingClientRect();
             const x = (rect.left + rect.width / 2) - (cr.left + cr.width / 2), y = (rect.top + rect.height / 2) - (cr.top + cr.height / 2);
             let angle = (Math.atan2(y, x) * (180 / Math.PI) + 360 + 90) % 360;
-            const dayColor = getComputedStyle(document.documentElement).getPropertyValue('--day-color').trim();
-            const nightColor = getComputedStyle(document.documentElement).getPropertyValue('--night-color').trim();
-            const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+            const root = getComputedStyle(document.documentElement);
+            const dayColor = root.getPropertyValue('--day-color').trim(), nightColor = root.getPropertyValue('--night-color').trim(), themeColor = root.getPropertyValue('--theme-color').trim();
             if (Math.sqrt(x*x + y*y) < cr.width / 2) icon.style.borderColor = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(dayColor) : getContrastYIQ(nightColor);
             else icon.style.borderColor = getContrastYIQ(themeColor);
         }
@@ -484,23 +485,21 @@
         function isAngleBetween(t, s, e) { s = (s % 360 + 360) % 360; e = (e % 360 + 360) % 360; t = (t % 360 + 360) % 360; return s <= e ? (t >= s && t <= e) : (t >= s || t <= e); }
 
         function updateColors() {
-            const root = document.documentElement;
-            const bg = getComputedStyle(root).getPropertyValue('--theme-color').trim(), day = getComputedStyle(root).getPropertyValue('--day-color').trim(), night = getComputedStyle(root).getPropertyValue('--night-color').trim(), iconBg = getComputedStyle(root).getPropertyValue('--icon-bg').trim();
+            const root = document.documentElement, cs = getComputedStyle(root);
+            const bg = cs.getPropertyValue('--theme-color').trim(), day = cs.getPropertyValue('--day-color').trim(), night = cs.getPropertyValue('--night-color').trim(), iconBg = cs.getPropertyValue('--icon-bg').trim();
             const bgContrast = getContrastYIQ(bg);
             root.style.setProperty('--celestial-contrast', bgContrast);
             root.style.setProperty('--text-contrast', getContrastYIQ(iconBg));
             root.style.setProperty('--menu-bg', bgContrast === 'black' ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.2)');
             document.querySelectorAll('.hour-tick').forEach(tick => {
-                const angle = parseFloat(tick.getAttribute('data-angle'));
-                const color = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(day) : getContrastYIQ(night);
+                const angle = parseFloat(tick.getAttribute('data-angle')), color = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(day) : getContrastYIQ(night);
                 tick.querySelector('.tick-mark').style.backgroundColor = color; if(tick.querySelector('.hour-number')) tick.querySelector('.hour-number').style.color = color;
             });
             document.querySelectorAll('.dropped-icon').forEach(updateIconBorder);
         }
 
         function drawClock(offset = 0) {
-            const container = document.getElementById("ticks-container");
-            container.innerHTML = ''; 
+            const container = document.getElementById("ticks-container"); container.innerHTML = ''; 
             for (let i = 0; i < 24; i++) {
                 const angle = ((i-12)*15)+offset, wrapper = document.createElement('div');
                 wrapper.className = 'hour-tick'; wrapper.setAttribute('data-angle', angle);
@@ -515,7 +514,7 @@
                 navigator.geolocation.getCurrentPosition(pos => {
                     fetch(`https://api.sunrise-sunset.org/json?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&formatted=0`)
                     .then(r => r.json()).then(data => {
-                        const noon = new Date(data.results.solar_noon); const offset = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
+                        const noon = new Date(data.results.solar_noon), offset = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
                         const sunRise = new Date(data.results.sunrise), sunSet = new Date(data.results.sunset);
                         currentSunriseAngle = (sunRise.getHours() + sunRise.getMinutes()/60 - 12) * 15 + offset;
                         currentSunsetAngle = (sunSet.getHours() + sunSet.getMinutes()/60 - 12) * 15 + offset;
@@ -535,19 +534,18 @@
                 left: i.style.left, top: i.style.top, isGroup: i.classList.contains('sticker-group')
             }));
             localStorage.setItem('universeIcons', JSON.stringify(icons));
-            localStorage.setItem('themeColor', getComputedStyle(document.documentElement).getPropertyValue('--theme-color'));
-            localStorage.setItem('iconBg', getComputedStyle(document.documentElement).getPropertyValue('--icon-bg'));
-            localStorage.setItem('dayColor', getComputedStyle(document.documentElement).getPropertyValue('--day-color'));
-            localStorage.setItem('nightColor', getComputedStyle(document.documentElement).getPropertyValue('--night-color'));
+            const root = document.documentElement.style;
+            localStorage.setItem('themeColor', root.getPropertyValue('--theme-color'));
+            localStorage.setItem('iconBg', root.getPropertyValue('--icon-bg'));
+            localStorage.setItem('dayColor', root.getPropertyValue('--day-color'));
+            localStorage.setItem('nightColor', root.getPropertyValue('--night-color'));
             localStorage.setItem('zoomLevel', zoomSlider.value);
             localStorage.setItem('panPos', JSON.stringify({x: currentPanX, y: currentPanY}));
         }
 
         function loadState() {
-            const zl = localStorage.getItem('zoomLevel');
-            if (zl) { zoomSlider.value = zl; document.documentElement.style.setProperty('--zoom-level', zl); }
-            const pp = JSON.parse(localStorage.getItem('panPos'));
-            if (pp) { currentPanX = pp.x; currentPanY = pp.y; document.documentElement.style.setProperty('--pan-x', currentPanX); document.documentElement.style.setProperty('--pan-y', currentPanY); }
+            const zl = localStorage.getItem('zoomLevel'); if (zl) { zoomSlider.value = zl; document.documentElement.style.setProperty('--zoom-level', zl); }
+            const pp = JSON.parse(localStorage.getItem('panPos')); if (pp) { currentPanX = pp.x; currentPanY = pp.y; document.documentElement.style.setProperty('--pan-x', currentPanX); document.documentElement.style.setProperty('--pan-y', currentPanY); }
             JSON.parse(localStorage.getItem('universeIcons') || "[]").forEach(d => {
                 if (d.isGroup) {
                     const group = document.createElement('div'); group.className = 'dropped-icon sticker-group'; group.style.left = d.left; group.style.top = d.top;
@@ -570,28 +568,12 @@
         }
 
         function exportPDF() { btns.forEach(b => document.getElementById(b).classList.remove('active')); window.print(); }
-        
         function exportPNG() {
             btns.forEach(b => document.getElementById(b).classList.remove('active'));
             const menuEl = document.getElementById('draggable-menu');
-            const originalMenuDisplay = menuEl.style.display;
             menuEl.style.display = 'none';
-
-            html2canvas(document.body, { 
-                backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim(), 
-                scale: 2, 
-                useCORS: true, 
-                allowTaint: true, 
-                width: window.innerWidth, 
-                height: window.innerHeight 
-            })
-            .then(canvas => {
-                menuEl.style.display = originalMenuDisplay;
-                const link = document.createElement('a'); 
-                link.download = 'mijn-hemelplanner.png'; 
-                link.href = canvas.toDataURL("image/png"); 
-                link.click();
-            });
+            html2canvas(document.body, { backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim(), scale: 2, useCORS: true, allowTaint: true, width: window.innerWidth, height: window.innerHeight })
+            .then(canvas => { menuEl.style.display = 'flex'; const link = document.createElement('a'); link.download = 'mijn-hemelplanner.png'; link.href = canvas.toDataURL("image/png"); link.click(); });
         }
         
         loadState(); setMoonPhase(); setInterval(setMoonPhase, 3600000);

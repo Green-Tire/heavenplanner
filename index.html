@@ -71,11 +71,37 @@
         .popup-content h2 { margin-top: 0; font-size: 1.4rem; }
         .popup-content ol { padding-left: 20px; line-height: 1.6; }
 
+        /* Handmatige locatie invoer styling */
+        .manual-location-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .manual-location-form input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+            outline: none;
+        }
+        .manual-location-form button {
+            background: white;
+            color: black;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
         .zoom-wrapper {
             position: relative;
             display: flex; justify-content: center; align-items: center;
             transform: translate(calc(var(--pan-x) * 1px), calc(var(--pan-y) * 1px)) scale(var(--zoom-level));
-            transition: transform 0.2s ease-out; width: 100%; height: 100%; z-index: 10;
+            transition: transform 0.2s ease-out; width: 100%;
+            height: 100%; z-index: 10;
         }
 
         .universe-container {
@@ -85,8 +111,9 @@
         }
 
         #stickers-layer { 
-            position: absolute; top: 50%; left: 50%; width: 85vmin; height: 85vmin;
-            transform: translate(-50%, -50%); pointer-events: none; z-index: 30; 
+            position: absolute;
+            top: 50%; left: 50%; width: 85vmin; height: 85vmin;
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 30;
         }
 
         #dual-circle {
@@ -149,7 +176,8 @@
         }
 
         .sticker-group {
-            display: inline-flex; flex-wrap: wrap; align-content: center; justify-content: center;
+            display: inline-flex;
+            flex-wrap: wrap; align-content: center; justify-content: center;
             padding: 1vmin !important; gap: 2px; width: 17% !important; height: 17% !important;
             aspect-ratio: 1 / 1; min-width: unset !important; min-height: unset !important; max-width: unset !important;
         }
@@ -191,8 +219,14 @@
         <div class="popup-content">
             <div class="popup-close" onclick="document.getElementById('location-popup').style.display = 'none'"><i data-lucide="x"></i></div>
             <p style="text-align: center; margin-top: 10px; font-size: 1.1rem;">
-                Je locatie kan helaas niet worden opgehaald. Probeer een privétablad.
+                Je locatie kan helaas niet worden opgehaald. Probeer een privétabblad of een andere browser.
             </p>
+            <p style="text-align: center; font-size: 0.9rem;">Of voer je stad handmatig in:</p>
+            <div class="manual-location-form">
+                <input type="text" id="manual-city" placeholder="Stad">
+                <input type="text" id="manual-country" placeholder="Land">
+                <button onclick="getSolarDataByCity()">Locatie opslaan</button>
+            </div>
         </div>
     </div>
 
@@ -270,7 +304,8 @@
             const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
             const blob = new Blob([sunIcon], {type: 'image/svg+xml'});
             const url = URL.createObjectURL(blob);
-            const link = document.createElement('link'); link.rel = 'icon'; link.href = url; document.head.appendChild(link);
+            const link = document.createElement('link'); link.rel = 'icon';
+            link.href = url; document.head.appendChild(link);
         }
         setFavicon(); lucide.createIcons();
 
@@ -319,7 +354,6 @@
                 }
             });
         });
-
         document.addEventListener('click', (e) => { if (!e.target.closest('#draggable-menu')) btns.forEach(b => document.getElementById(b).classList.remove('active')); });
         const zoomSlider = document.getElementById("zoom-slider");
         zoomSlider.addEventListener('input', (e) => { document.documentElement.style.setProperty('--zoom-level', e.target.value); saveState(); });
@@ -335,7 +369,6 @@
             const target = e.target.closest('#draggable-menu, .dropped-icon');
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
             startX = touch.clientX; startY = touch.clientY;
-            
             if (!target || e.target.closest('.expandable-content') || e.target.classList.contains('group-emoji')) {
                 panTimer = setTimeout(() => { isPanning = true; startPanX = touch.clientX - currentPanX; startPanY = touch.clientY - currentPanY; document.body.style.cursor = 'grabbing'; }, 500);
                 return;
@@ -355,7 +388,8 @@
             const dx = touch.clientX - startX, dy = touch.clientY - startY;
             if (!isPanning && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) clearTimeout(panTimer);
             if (isPanning) { 
-                currentPanX = touch.clientX - startPanX; currentPanY = touch.clientY - startPanY;
+                currentPanX = touch.clientX - startPanX;
+                currentPanY = touch.clientY - startPanY;
                 document.documentElement.style.setProperty('--pan-x', currentPanX); document.documentElement.style.setProperty('--pan-y', currentPanY); return;
             }
             if (!activeElement) return;
@@ -419,20 +453,20 @@
                     const rect = activeElement.getBoundingClientRect();
                     const finalX = ((rect.left + rect.width / 2 - cr.left) / cr.width) * 100;
                     const finalY = ((rect.top + rect.height / 2 - cr.top) / cr.height) * 100;
-                    
                     const finalSticker = createNormalSticker(activeElement.innerText, finalX + "%", finalY + "%");
                     stickersLayer.appendChild(finalSticker);
                     activeElement.remove();
                     updateIconBorder(finalSticker);
                 }
-                if (activeElement && activeElement.parentNode) activeElement.classList.remove('dragging'); 
+                if (activeElement && activeElement.parentNode) activeElement.classList.remove('dragging');
                 saveState();
             } else if (activeElement === menu) { activeElement.classList.remove('dragging'); saveState(); }
             activeElement = null; isSpawning = false;
         }
 
         function initDragSpawn(e, emoji) {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             const touch = e.type.startsWith("touch") ? e.touches[0] : e, uniRect = universe.getBoundingClientRect();
             const div = document.createElement('div');
             div.className = 'dropped-icon dragging';
@@ -443,7 +477,8 @@
             div.style.top = touch.clientY + "px";
             div.style.position = 'fixed';
             document.body.appendChild(div);
-            activeElement = div; isDragging = true; isSpawning = true; startX = touch.clientX; startY = touch.clientY;
+            activeElement = div; isDragging = true;
+            isSpawning = true; startX = touch.clientX; startY = touch.clientY;
         }
 
         document.addEventListener("mousedown", startDragging);
@@ -490,31 +525,60 @@
         }
 
         function drawClock(offset = 0) {
-            const container = document.getElementById("ticks-container"); container.innerHTML = ''; 
+            const container = document.getElementById("ticks-container");
+            container.innerHTML = ''; 
             for (let i = 0; i < 24; i++) {
                 const angle = ((i-12)*15)+offset, wrapper = document.createElement('div');
                 wrapper.className = 'hour-tick'; wrapper.setAttribute('data-angle', angle);
                 if (i % 6 === 0) { const num = document.createElement('div'); num.className = 'hour-number'; num.innerText = i === 0 ? "24" : (i < 10 ? "0"+i : i); num.style.transform = `translateX(-50%) rotate(${-angle}deg)`; wrapper.appendChild(num); }
-                const mark = document.createElement('div'); mark.className = 'tick-mark'; wrapper.appendChild(mark); wrapper.style.transform = `translateX(-50%) rotate(${angle}deg)`; container.appendChild(wrapper);
+                const mark = document.createElement('div');
+                mark.className = 'tick-mark'; wrapper.appendChild(mark); wrapper.style.transform = `translateX(-50%) rotate(${angle}deg)`; container.appendChild(wrapper);
             }
             updateColors();
+        }
+
+        function processSolarData(data) {
+            const noon = new Date(data.results.solar_noon); 
+            const offset = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
+            const sunRise = new Date(data.results.sunrise), sunSet = new Date(data.results.sunset);
+            currentSunriseAngle = (sunRise.getHours() + sunRise.getMinutes()/60 - 12) * 15 + offset;
+            currentSunsetAngle = (sunSet.getHours() + sunSet.getMinutes()/60 - 12) * 15 + offset;
+            drawClock(offset);
+            const polarToCartesian = (a) => ({ x: 50 + 50 * Math.cos((a - 90) * Math.PI / 180), y: 50 + 50 * Math.sin((a - 90) * Math.PI / 180) });
+            const start = polarToCartesian(currentSunriseAngle), end = polarToCartesian(currentSunsetAngle);
+            document.getElementById("day-path").setAttribute("d", `M 50 50 L ${start.x} ${start.y} A 50 50 0 ${((currentSunsetAngle - currentSunriseAngle + 360) % 360 <= 180 ? "0" : "1")} 1 ${end.x} ${end.y} Z`);
+            updateColors();
+            document.getElementById('location-popup').style.display = 'none';
+        }
+
+        function getSolarDataByCity() {
+            const city = document.getElementById('manual-city').value;
+            const country = document.getElementById('manual-country').value;
+            if (!city) return alert("Voer een stad in.");
+            
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city},${country}`)
+            .then(r => r.json())
+            .then(locData => {
+                if (locData.length > 0) {
+                    const lat = locData[0].lat;
+                    const lng = locData[0].lon;
+                    fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`)
+                    .then(r => r.json())
+                    .then(processSolarData);
+                } else {
+                    alert("Locatie niet gevonden. Probeer een andere stad.");
+                }
+            })
+            .catch(() => alert("Er is een fout opgetreden bij het zoeken naar de locatie."));
         }
 
         function getSolarData() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {
                     fetch(`https://api.sunrise-sunset.org/json?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&formatted=0`)
-                    .then(r => r.json()).then(data => {
-                        const noon = new Date(data.results.solar_noon); const offset = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
-                        const sunRise = new Date(data.results.sunrise), sunSet = new Date(data.results.sunset);
-                        currentSunriseAngle = (sunRise.getHours() + sunRise.getMinutes()/60 - 12) * 15 + offset;
-                        currentSunsetAngle = (sunSet.getHours() + sunSet.getMinutes()/60 - 12) * 15 + offset;
-                        drawClock(offset);
-                        const polarToCartesian = (a) => ({ x: 50 + 50 * Math.cos((a - 90) * Math.PI / 180), y: 50 + 50 * Math.sin((a - 90) * Math.PI / 180) });
-                        const start = polarToCartesian(currentSunriseAngle), end = polarToCartesian(currentSunsetAngle);
-                        document.getElementById("day-path").setAttribute("d", `M 50 50 L ${start.x} ${start.y} A 50 50 0 ${((currentSunsetAngle - currentSunriseAngle + 360) % 360 <= 180 ? "0" : "1")} 1 ${end.x} ${end.y} Z`);
-                        updateColors();
-                    }).catch(() => { drawClock(0); hasLocationError = true; showLocationError(); });
+                    .then(r => r.json())
+                    .then(processSolarData)
+                    .catch(() => { drawClock(0); hasLocationError = true; showLocationError(); });
                 }, () => { drawClock(0); hasLocationError = true; showLocationError(); });
             } else { drawClock(0); hasLocationError = true; showLocationError(); }
         }
@@ -534,8 +598,10 @@
         }
 
         function loadState() {
-            const zl = localStorage.getItem('zoomLevel'); if (zl) { zoomSlider.value = zl; document.documentElement.style.setProperty('--zoom-level', zl); }
-            const pp = JSON.parse(localStorage.getItem('panPos')); if (pp) { currentPanX = pp.x; currentPanY = pp.y; document.documentElement.style.setProperty('--pan-x', currentPanX); document.documentElement.style.setProperty('--pan-y', currentPanY); }
+            const zl = localStorage.getItem('zoomLevel');
+            if (zl) { zoomSlider.value = zl; document.documentElement.style.setProperty('--zoom-level', zl); }
+            const pp = JSON.parse(localStorage.getItem('panPos'));
+            if (pp) { currentPanX = pp.x; currentPanY = pp.y; document.documentElement.style.setProperty('--pan-x', currentPanX); document.documentElement.style.setProperty('--pan-y', currentPanY); }
             JSON.parse(localStorage.getItem('universeIcons') || "[]").forEach(d => {
                 if (d.isGroup) {
                     const group = document.createElement('div'); group.className = 'dropped-icon sticker-group'; group.style.left = d.left; group.style.top = d.top;

@@ -17,6 +17,7 @@
             --line-thickness: 2px;
             --text-contrast: white;
             --celestial-contrast: white;
+            --hand-color: white;
             --menu-bg: rgba(255, 255, 255, 0.2);
             --menu-border: rgba(255, 255, 255, 0.3);
             --menu-item-bg: rgba(255, 255, 255, 0.15);
@@ -71,7 +72,6 @@
         .popup-content h2 { margin-top: 0; font-size: 1.4rem; }
         .popup-content ol { padding-left: 20px; line-height: 1.6; }
 
-        /* Handmatige locatie invoer styling */
         .manual-location-form {
             display: flex;
             flex-direction: column;
@@ -145,6 +145,18 @@
         .tick-mark { width: 2px; height: 4%; background-color: black; margin: 0 auto; }
         .hour-number { position: absolute; top: 6%; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 3.5vmin; }
 
+        #hour-hand {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 4px; height: 42%;
+            background: var(--hand-color);
+            transform-origin: 50% 0;
+            z-index: 40;
+            border-radius: 4px;
+            pointer-events: none;
+            transition: background 0.3s ease;
+        }
+
         #draggable-menu {
             position: absolute;
             top: 20px; left: 20px; display: flex; flex-direction: row; gap: 10px; padding: 8px 12px;
@@ -189,7 +201,7 @@
         @media print {
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
             body, html { background-color: var(--theme-color) !important; }
-            #draggable-menu, #welcome-popup, #location-popup { display: none !important; }
+            #draggable-menu, #welcome-popup, #location-popup, #hour-hand { display: none !important; }
             .sun svg { fill: var(--celestial-contrast) !important; }
             .sun svg line { stroke: var(--celestial-contrast) !important; }
             .moon-container { border-color: var(--celestial-contrast) !important; background-color: white !important; }
@@ -219,7 +231,8 @@
         <div class="popup-content">
             <div class="popup-close" onclick="document.getElementById('location-popup').style.display = 'none'"><i data-lucide="x"></i></div>
             <p style="text-align: center; margin-top: 10px; font-size: 1.1rem;">
-                Je locatie kan helaas niet worden opgehaald. Probeer een privétabblad of een andere browser.
+                Je locatie kan helaas niet worden opgehaald.
+                Probeer een privétabblad of een andere browser.
             </p>
             <p style="text-align: center; font-size: 0.9rem;">Of voer je stad handmatig in:</p>
             <div class="manual-location-form">
@@ -238,6 +251,7 @@
             </svg>
             <div id="solar-lines-container"></div>
             <div id="ticks-container"></div>
+            <div id="hour-hand"></div>
             <div class="sun">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" stroke-width="2" /><line x1="12" y1="21" x2="12" y2="23" stroke-width="2" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke-width="2" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke-width="2" /><line x1="1" y1="12" x2="3" y2="12" stroke-width="2" /><line x1="21" y1="12" x2="23" y2="12" stroke-width="2" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke-width="2" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke-width="2" /></svg>
             </div> 
@@ -304,12 +318,14 @@
             const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
             const blob = new Blob([sunIcon], {type: 'image/svg+xml'});
             const url = URL.createObjectURL(blob);
-            const link = document.createElement('link'); link.rel = 'icon';
+            const link = document.createElement('link');
+            link.rel = 'icon';
             link.href = url; document.head.appendChild(link);
         }
         setFavicon(); lucide.createIcons();
-
         let hasLocationError = false;
+        let globalSolarOffset = 0;
+
         function showLocationError() { if (document.getElementById('welcome-popup').style.display === 'none') { document.getElementById('location-popup').style.display = 'flex'; } }
         function closePopup() { document.getElementById('welcome-popup').style.display = 'none'; if (hasLocationError) showLocationError(); }
 
@@ -333,6 +349,7 @@
         Object.entries(colorPicks).forEach(([id, prop]) => {
             document.getElementById(id).addEventListener('input', (e) => { document.documentElement.style.setProperty(prop, e.target.value); updateColors(); saveState(); });
         });
+
         function resetColors() {
             const defaults = {'--theme-color': '#000000', '--icon-bg': '#000000', '--day-color': 'rgb(204, 186, 108)', '--night-color': 'rgb(103, 126, 161)'};
             Object.entries(defaults).forEach(([prop, val]) => document.documentElement.style.setProperty(prop, val)); updateColors(); saveState();
@@ -354,6 +371,7 @@
                 }
             });
         });
+
         document.addEventListener('click', (e) => { if (!e.target.closest('#draggable-menu')) btns.forEach(b => document.getElementById(b).classList.remove('active')); });
         const zoomSlider = document.getElementById("zoom-slider");
         zoomSlider.addEventListener('input', (e) => { document.documentElement.style.setProperty('--zoom-level', e.target.value); saveState(); });
@@ -465,8 +483,7 @@
         }
 
         function initDragSpawn(e, emoji) {
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault(); e.stopPropagation();
             const touch = e.type.startsWith("touch") ? e.touches[0] : e, uniRect = universe.getBoundingClientRect();
             const div = document.createElement('div');
             div.className = 'dropped-icon dragging';
@@ -522,14 +539,32 @@
                 tick.querySelector('.tick-mark').style.backgroundColor = color; if(tick.querySelector('.hour-number')) tick.querySelector('.hour-number').style.color = color;
             });
             document.querySelectorAll('.dropped-icon').forEach(updateIconBorder);
+            updateHourHand();
+        }
+
+        function updateHourHand() {
+            const now = new Date();
+            const currentHour = now.getHours() + now.getMinutes() / 60;
+            const hourAngle = ((currentHour - 12) * 15) + globalSolarOffset;
+            const normalizedAngle = (hourAngle % 360 + 360) % 360;
+            const hand = document.getElementById('hour-hand');
+            
+            const dayColor = getComputedStyle(document.documentElement).getPropertyValue('--day-color').trim();
+            const nightColor = getComputedStyle(document.documentElement).getPropertyValue('--night-color').trim();
+            
+            const handContrast = isAngleBetween(normalizedAngle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(dayColor) : getContrastYIQ(nightColor);
+            
+            document.documentElement.style.setProperty('--hand-color', handContrast);
+            hand.style.transform = `translateX(-50%) rotate(${hourAngle + 180}deg)`;
         }
 
         function drawClock(offset = 0) {
+            globalSolarOffset = offset;
             const container = document.getElementById("ticks-container");
             container.innerHTML = ''; 
             for (let i = 0; i < 24; i++) {
                 const angle = ((i-12)*15)+offset, wrapper = document.createElement('div');
-                wrapper.className = 'hour-tick'; wrapper.setAttribute('data-angle', angle);
+                wrapper.className = 'hour-tick'; wrapper.setAttribute('data-angle', (angle % 360 + 360) % 360);
                 if (i % 6 === 0) { const num = document.createElement('div'); num.className = 'hour-number'; num.innerText = i === 0 ? "24" : (i < 10 ? "0"+i : i); num.style.transform = `translateX(-50%) rotate(${-angle}deg)`; wrapper.appendChild(num); }
                 const mark = document.createElement('div');
                 mark.className = 'tick-mark'; wrapper.appendChild(mark); wrapper.style.transform = `translateX(-50%) rotate(${angle}deg)`; container.appendChild(wrapper);
@@ -538,7 +573,7 @@
         }
 
         function processSolarData(data) {
-            const noon = new Date(data.results.solar_noon); 
+            const noon = new Date(data.results.solar_noon);
             const offset = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
             const sunRise = new Date(data.results.sunrise), sunSet = new Date(data.results.sunset);
             currentSunriseAngle = (sunRise.getHours() + sunRise.getMinutes()/60 - 12) * 15 + offset;
@@ -555,7 +590,6 @@
             const city = document.getElementById('manual-city').value;
             const country = document.getElementById('manual-country').value;
             if (!city) return alert("Voer een stad in.");
-            
             fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city},${country}`)
             .then(r => r.json())
             .then(locData => {
@@ -565,9 +599,7 @@
                     fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`)
                     .then(r => r.json())
                     .then(processSolarData);
-                } else {
-                    alert("Locatie niet gevonden. Probeer een andere stad.");
-                }
+                } else { alert("Locatie niet gevonden. Probeer een andere stad."); }
             })
             .catch(() => alert("Er is een fout opgetreden bij het zoeken naar de locatie."));
         }
@@ -628,19 +660,23 @@
         function exportPNG() {
             btns.forEach(b => document.getElementById(b).classList.remove('active'));
             const menuEl = document.getElementById('draggable-menu');
+            const handEl = document.getElementById('hour-hand');
             const originalMenuDisplay = menuEl.style.display;
+            const originalHandDisplay = handEl.style.display;
             menuEl.style.display = 'none';
+            handEl.style.display = 'none';
             html2canvas(document.body, { 
                 backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim(), 
                 scale: 2, useCORS: true, allowTaint: true, width: window.innerWidth, height: window.innerHeight 
             })
             .then(canvas => {
                 menuEl.style.display = originalMenuDisplay;
+                handEl.style.display = originalHandDisplay;
                 const link = document.createElement('a'); link.download = 'mijn-hemelplanner.png'; link.href = canvas.toDataURL("image/png"); link.click();
             });
         }
         
-        loadState(); setMoonPhase(); setInterval(setMoonPhase, 3600000);
+        loadState(); setMoonPhase(); setInterval(setMoonPhase, 3600000); setInterval(updateHourHand, 60000);
     </script>
 </body>
 </html>

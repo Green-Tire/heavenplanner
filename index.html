@@ -25,14 +25,16 @@
             --zoom-level: 1;
             --pan-x: 0;
             --pan-y: 0;
+            --base-size: 70vmin;
         }
         
         body, html {
             margin: 0;
             padding: 0; width: 100%; height: 100%;
             background-color: var(--theme-color);
-            display: flex; justify-content: center; align-items: center; 
-            overflow: hidden; font-family: 'Segoe UI', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
             touch-action: none; user-select: none; -webkit-user-select: none;
         }
 
@@ -61,9 +63,9 @@
 
         .popup-close { 
             position: absolute;
-            top: 15px; right: 15px; 
-            cursor: pointer; 
-            color: white; 
+            top: 15px; right: 15px;
+            cursor: pointer;
+            color: white;
             z-index: 10000;
             display: flex; align-items: center; justify-content: center;
             width: 30px; height: 30px;
@@ -106,13 +108,13 @@
 
         .universe-container {
             position: relative;
-            width: 85vmin; height: 85vmin;
+            width: var(--base-size); height: var(--base-size);
             display: flex; justify-content: center; align-items: center; flex-shrink: 0; z-index: 1;
         }
 
         #stickers-layer { 
             position: absolute;
-            top: 50%; left: 50%; width: 85vmin; height: 85vmin;
+            top: 50%; left: 50%; width: var(--base-size); height: var(--base-size);
             transform: translate(-50%, -50%); pointer-events: none; z-index: 30;
         }
 
@@ -128,22 +130,37 @@
         .sun svg { width: 100%; height: 100%; fill: var(--celestial-contrast); }
         .sun svg line { stroke: var(--celestial-contrast); }
         
+        /* SCHERPE MAAN EXPORT VIA GRADIENTS */
         .moon-container {
             position: absolute;
             bottom: -16%; width: 11%; height: 11%;
-            border-radius: 50%; border: 2px solid var(--celestial-contrast) !important;
+            border-radius: 50%; 
+            border: 2px solid var(--celestial-contrast) !important;
             left: 50%; transform: translateX(-50%); z-index: 5;
-            background-color: white !important; overflow: hidden;
+            background-color: white !important; /* Standaard Volle Maan */
+            box-sizing: border-box;
         }
-        .moon-container::after { content: ''; position: absolute; top: 0; width: 50%; height: 100%; background-color: black !important; display: none; z-index: 6; }
-        .moon-first-quarter::after { display: block; left: 0; }
-        .moon-last-quarter::after { display: block; right: 0; }
-        .moon-new { background-color: black !important; }
+
+        /* Nieuwe Maan: Helemaal zwart */
+        .moon-container.moon-new { background-color: black !important; }
+
+        /* Volle Maan: Helemaal wit */
+        .moon-container.moon-full { background-color: white !important; }
+
+        /* Eerste Kwartier (D-vorm): Links zwart, Rechts wit */
+        .moon-container.moon-first-quarter {
+            background: linear-gradient(90deg, black 50%, white 50%) !important;
+        }
+
+        /* Laatste Kwartier (Omgekeerde D): Links wit, Rechts zwart */
+        .moon-container.moon-last-quarter {
+            background: linear-gradient(90deg, white 50%, black 50%) !important;
+        }
 
         #ticks-container { position: absolute; width: 100%; height: 100%; z-index: 1; }
         .hour-tick { position: absolute; top: 0; left: 50%; height: 100%; width: 2px; pointer-events: none; }
         .tick-mark { width: 2px; height: 4%; background-color: black; margin: 0 auto; }
-        .hour-number { position: absolute; top: 6%; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 3.5vmin; }
+        .hour-number { position: absolute; top: 6%; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 3vmin; }
 
         #hour-hand {
             position: absolute;
@@ -159,9 +176,11 @@
 
         #draggable-menu {
             position: absolute;
-            top: 20px; left: 20px; display: flex; flex-direction: row; gap: 10px; padding: 8px 12px;
+            top: 20px; left: 50px; 
+            display: flex; flex-direction: row; gap: 10px; padding: 8px 12px;
             background: var(--menu-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--menu-border); border-radius: 40px; cursor: grab; z-index: 5000;
+            border: 1px solid var(--menu-border); border-radius: 40px;
+            cursor: grab; z-index: 5000;
         }
 
         #draggable-menu.mirrored { flex-direction: row-reverse; }
@@ -178,24 +197,27 @@
         .sub-icon { width: 35px; height: 35px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; cursor: pointer; overflow: hidden; position: relative; }
 
         .dropped-icon { 
-            position: absolute;
-            width: 9%; height: 9%;
+            position: absolute; width: 10%; height: 10%;
             background-color: var(--icon-bg); color: var(--text-contrast);
-            border: 1px solid transparent; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            cursor: grab; pointer-events: auto;
-            font-size: 4vmin; transform: translate(-50%, -50%); z-index: 100; 
-            box-sizing: border-box;
+            border: 1px solid transparent; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: grab; pointer-events: auto; font-size: 4.5vmin;
+            transform: translate(-50%, -50%); z-index: 100;
+            box-sizing: border-box; overflow: visible; line-height: 1;
         }
 
-        .sticker-group {
-            display: inline-flex;
-            flex-wrap: wrap; align-content: center; justify-content: center;
-            padding: 1vmin !important; gap: 2px; width: 17% !important; height: 17% !important;
-            aspect-ratio: 1 / 1; min-width: unset !important; min-height: unset !important; max-width: unset !important;
-        }
+        .sticker-group { display: grid !important; padding: 0 !important; place-items: center; place-content: center; width: 13% !important; height: 13% !important; }
+        .sticker-group.group-3, .sticker-group.group-4 { width: 16% !important; height: 16% !important; }
+        .group-emoji { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; line-height: 1; text-align: center; }
+        .sticker-group.group-2 { grid-template-columns: 1fr 1fr; padding: 5% !important; box-sizing: border-box; }
+        .sticker-group.group-2 .group-emoji { font-size: 3.0vmin; }
+        .sticker-group.group-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; padding: 5% !important; box-sizing: border-box; row-gap: 3%; }
+        .sticker-group.group-3 .group-emoji { font-size: 2.8vmin; }
+        .sticker-group.group-3 .group-emoji:last-child { grid-column: span 2; }
+        .sticker-group.group-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; padding: 5% !important; box-sizing: border-box; row-gap: 3%; }
+        .sticker-group.group-4 .group-emoji { font-size: 2.8vmin; }
 
-        .group-emoji { font-size: 4vmin; line-height: 1; flex-shrink: 0; cursor: pointer; }
-        .dragging { z-index: 6000 !important; }
+        .dragging { z-index: 6000 !important; cursor: grabbing !important; opacity: 1 !important; }
         .color-input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
         @media print {
@@ -204,10 +226,7 @@
             #draggable-menu, #welcome-popup, #location-popup, #hour-hand { display: none !important; }
             .sun svg { fill: var(--celestial-contrast) !important; }
             .sun svg line { stroke: var(--celestial-contrast) !important; }
-            .moon-container { border-color: var(--celestial-contrast) !important; background-color: white !important; }
-            .moon-new { background-color: black !important; }
-            .moon-first-quarter::after, .moon-last-quarter::after { background-color: black !important; }
-            .dropped-icon { background-color: var(--icon-bg) !important; color: var(--text-contrast) !important; border-color: inherit !important; }
+            .moon-container { border-color: var(--celestial-contrast) !important; }
         }
     </style>
 </head>
@@ -230,11 +249,7 @@
     <div id="location-popup">
         <div class="popup-content">
             <div class="popup-close" onclick="document.getElementById('location-popup').style.display = 'none'"><i data-lucide="x"></i></div>
-            <p style="text-align: center; margin-top: 10px; font-size: 1.1rem;">
-                Je locatie kan helaas niet worden opgehaald.
-                Probeer een privétabblad of een andere browser.
-            </p>
-            <p style="text-align: center; font-size: 0.9rem;">Of voer je stad handmatig in:</p>
+            <p style="text-align: center; margin-top: 10px; font-size: 1.1rem;">Je locatie kan helaas niet worden opgehaald. Probeer een privétabblad of een andere browser.</p>
             <div class="manual-location-form">
                 <input type="text" id="manual-city" placeholder="Stad">
                 <input type="text" id="manual-country" placeholder="Land">
@@ -285,6 +300,7 @@
                 </div>
             </div>
         </div>
+        
         <div id="palette-btn" class="menu-item"><i data-lucide="palette"></i>
             <div id="palette-box" class="expandable expand-down">
                 <div class="expandable-content">
@@ -296,6 +312,7 @@
                 </div>
             </div>
         </div>
+      
         <div id="zoom-btn" class="menu-item"><i data-lucide="search"></i>
             <div id="zoom-box" class="expandable expand-down">
                 <div class="expandable-content">
@@ -303,6 +320,7 @@
                 </div>
             </div>
         </div>
+ 
         <div id="download-btn" class="menu-item"><i data-lucide="download"></i>
             <div id="download-box" class="expandable expand-down">
                 <div class="expandable-content">
@@ -319,16 +337,12 @@
             const blob = new Blob([sunIcon], {type: 'image/svg+xml'});
             const url = URL.createObjectURL(blob);
             const link = document.createElement('link');
-            link.rel = 'icon';
-            link.href = url; document.head.appendChild(link);
+            link.rel = 'icon'; link.href = url; document.head.appendChild(link);
         }
         setFavicon(); lucide.createIcons();
+
         let hasLocationError = false;
         let globalSolarOffset = 0;
-
-        function showLocationError() { if (document.getElementById('welcome-popup').style.display === 'none') { document.getElementById('location-popup').style.display = 'flex'; } }
-        function closePopup() { document.getElementById('welcome-popup').style.display = 'none'; if (hasLocationError) showLocationError(); }
-
         let currentSunriseAngle = 90, currentSunsetAngle = 270, activeElement = null, startX, startY, elemStartX, elemStartY, isDragging = false, isSpawning = false;
         let isPanning = false, panTimer = null, currentPanX = 0, currentPanY = 0, startPanX = 0, startPanY = 0;
         const menu = document.getElementById("draggable-menu");
@@ -336,11 +350,14 @@
         const zoomWrapper = document.getElementById("zoom-wrapper");
         const stickersLayer = document.getElementById("stickers-layer");
 
+        function showLocationError() { if (document.getElementById('welcome-popup').style.display === 'none') { document.getElementById('location-popup').style.display = 'flex'; } }
+        function closePopup() { document.getElementById('welcome-popup').style.display = 'none'; if (hasLocationError) showLocationError(); }
+
         function updateMenuDynamics() {
             const menuRect = menu.getBoundingClientRect();
             const expandables = document.querySelectorAll('.expandable');
             if (menuRect.top > window.innerHeight / 2) { expandables.forEach(el => { el.classList.remove('expand-down'); el.classList.add('expand-up'); }); }
-            else { expandables.forEach(el => { el.classList.remove('expand-up'); el.classList.add('expand-down'); }); }
+            else { expandables.forEach(el => { el.classList.remove('expand-down'); el.classList.add('expand-down'); }); }
             if (menuRect.left + (menuRect.width / 2) > window.innerWidth / 2) menu.classList.add('mirrored');
             else menu.classList.remove('mirrored');
         }
@@ -349,7 +366,6 @@
         Object.entries(colorPicks).forEach(([id, prop]) => {
             document.getElementById(id).addEventListener('input', (e) => { document.documentElement.style.setProperty(prop, e.target.value); updateColors(); saveState(); });
         });
-
         function resetColors() {
             const defaults = {'--theme-color': '#000000', '--icon-bg': '#000000', '--day-color': 'rgb(204, 186, 108)', '--night-color': 'rgb(103, 126, 161)'};
             Object.entries(defaults).forEach(([prop, val]) => document.documentElement.style.setProperty(prop, val)); updateColors(); saveState();
@@ -359,13 +375,12 @@
         btns.forEach(id => {
             document.getElementById(id).addEventListener('click', (e) => {
                 if (isDragging || isPanning) return;
-                if (id === "zoom-btn" && !e.target.closest('.expandable-content')) {
-                    document.documentElement.style.setProperty('--zoom-level', 1);
-                    zoomSlider.value = 1; currentPanX = 0; currentPanY = 0;
-                    document.documentElement.style.setProperty('--pan-x', 0); document.documentElement.style.setProperty('--pan-y', 0); saveState();
-                }
                 if (!e.target.closest('.expandable-content')) { 
-                    updateMenuDynamics(); 
+                    updateMenuDynamics();
+                    if (id === "zoom-btn") {
+                        const slider = document.getElementById("zoom-slider");
+                        slider.value = 1; document.documentElement.style.setProperty('--zoom-level', 1); saveState();
+                    }
                     btns.forEach(b => { if(b !== id) document.getElementById(b).classList.remove('active'); });
                     document.getElementById(id).classList.toggle('active');
                 }
@@ -384,15 +399,14 @@
         }
 
         function startDragging(e) {
-            const target = e.target.closest('#draggable-menu, .dropped-icon');
             const touch = e.type.startsWith("touch") ? e.touches[0] : e;
+            const target = e.target.closest('.dropped-icon, #draggable-menu');
             startX = touch.clientX; startY = touch.clientY;
-            if (!target || e.target.closest('.expandable-content') || e.target.classList.contains('group-emoji')) {
+            if (!target || e.target.closest('.expandable-content')) {
                 panTimer = setTimeout(() => { isPanning = true; startPanX = touch.clientX - currentPanX; startPanY = touch.clientY - currentPanY; document.body.style.cursor = 'grabbing'; }, 500);
                 return;
             }
-            isDragging = false; isSpawning = false;
-            activeElement = target; activeElement.classList.add('dragging'); 
+            isDragging = false; isSpawning = false; activeElement = target; activeElement.classList.add('dragging');
             if (activeElement === menu) { elemStartX = activeElement.offsetLeft; elemStartY = activeElement.offsetTop; }
             else { 
                 const r = activeElement.getBoundingClientRect(), cr = stickersLayer.getBoundingClientRect();
@@ -406,8 +420,7 @@
             const dx = touch.clientX - startX, dy = touch.clientY - startY;
             if (!isPanning && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) clearTimeout(panTimer);
             if (isPanning) { 
-                currentPanX = touch.clientX - startPanX;
-                currentPanY = touch.clientY - startPanY;
+                currentPanX = touch.clientX - startPanX; currentPanY = touch.clientY - startPanY;
                 document.documentElement.style.setProperty('--pan-x', currentPanX); document.documentElement.style.setProperty('--pan-y', currentPanY); return;
             }
             if (!activeElement) return;
@@ -421,25 +434,30 @@
             }
         }
 
-        function handleEmojiRemove(emojiSpan, groupDiv) {
-            emojiSpan.remove();
-            const remaining = groupDiv.querySelectorAll('.group-emoji');
-            if (remaining.length === 1) {
-                const newIcon = createNormalSticker(remaining[0].innerText, groupDiv.style.left, groupDiv.style.top);
-                stickersLayer.appendChild(newIcon); groupDiv.remove(); updateIconBorder(newIcon);
-            } else if (remaining.length === 0) { groupDiv.remove(); } 
-            else { updateIconBorder(groupDiv); }
-            saveState();
+        function updateGroupLayout(groupDiv) {
+            const count = groupDiv.querySelectorAll('.group-emoji').length;
+            groupDiv.classList.remove('group-2', 'group-3', 'group-4');
+            if (count === 2) groupDiv.classList.add('group-2');
+            else if (count === 3) groupDiv.classList.add('group-3');
+            else if (count >= 4) groupDiv.classList.add('group-4');
         }
 
         function createNormalSticker(emoji, left, top) {
             const div = document.createElement('div');
             div.className = 'dropped-icon'; div.innerText = emoji; div.style.left = left; div.style.top = top;
-            div.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if(!isDragging) { div.remove(); saveState(); }
-            });
+            div.addEventListener('click', (e) => { e.stopPropagation(); if(!isDragging) { div.remove(); saveState(); } });
             return div;
+        }
+
+        function handleEmojiRemove(emojiSpan, groupDiv) {
+            if (isDragging) return; emojiSpan.remove();
+            const remaining = groupDiv.querySelectorAll('.group-emoji');
+            if (remaining.length === 1) {
+                const newIcon = createNormalSticker(remaining[0].innerText, groupDiv.style.left, groupDiv.style.top);
+                stickersLayer.appendChild(newIcon); groupDiv.remove(); updateIconBorder(newIcon);
+            } else if (remaining.length === 0) { groupDiv.remove(); } 
+            else { updateGroupLayout(groupDiv); updateIconBorder(groupDiv); }
+            saveState();
         }
 
         function endDragging() { 
@@ -462,19 +480,15 @@
                         emoji1.onclick = (e) => { e.stopPropagation(); handleEmojiRemove(emoji1, newGroup); };
                         newGroup.appendChild(emoji1); stickersLayer.appendChild(newGroup); targetGroup.remove(); targetGroup = newGroup;
                     }
-                    const emoji2 = document.createElement('span');
-                    emoji2.className = 'group-emoji'; emoji2.innerText = activeElement.innerText;
+                    const emoji2 = document.createElement('span'); emoji2.className = 'group-emoji'; emoji2.innerText = activeElement.innerText;
                     emoji2.onclick = (e) => { e.stopPropagation(); handleEmojiRemove(emoji2, targetGroup); };
-                    targetGroup.appendChild(emoji2); activeElement.remove(); updateIconBorder(targetGroup);
+                    targetGroup.appendChild(emoji2); activeElement.remove(); updateGroupLayout(targetGroup); updateIconBorder(targetGroup);
                 } else if (isSpawning) {
-                    const cr = stickersLayer.getBoundingClientRect();
-                    const rect = activeElement.getBoundingClientRect();
+                    const cr = stickersLayer.getBoundingClientRect(), rect = activeElement.getBoundingClientRect();
                     const finalX = ((rect.left + rect.width / 2 - cr.left) / cr.width) * 100;
                     const finalY = ((rect.top + rect.height / 2 - cr.top) / cr.height) * 100;
                     const finalSticker = createNormalSticker(activeElement.innerText, finalX + "%", finalY + "%");
-                    stickersLayer.appendChild(finalSticker);
-                    activeElement.remove();
-                    updateIconBorder(finalSticker);
+                    stickersLayer.appendChild(finalSticker); activeElement.remove(); updateIconBorder(finalSticker);
                 }
                 if (activeElement && activeElement.parentNode) activeElement.classList.remove('dragging');
                 saveState();
@@ -485,25 +499,15 @@
         function initDragSpawn(e, emoji) {
             e.preventDefault(); e.stopPropagation();
             const touch = e.type.startsWith("touch") ? e.touches[0] : e, uniRect = universe.getBoundingClientRect();
-            const div = document.createElement('div');
-            div.className = 'dropped-icon dragging';
-            div.innerText = emoji;
-            div.style.width = (uniRect.width * 0.09) + "px";
-            div.style.height = (uniRect.width * 0.09) + "px";
-            div.style.left = touch.clientX + "px";
-            div.style.top = touch.clientY + "px";
-            div.style.position = 'fixed';
-            document.body.appendChild(div);
-            activeElement = div; isDragging = true;
-            isSpawning = true; startX = touch.clientX; startY = touch.clientY;
+            const div = document.createElement('div'); div.className = 'dropped-icon dragging'; div.innerText = emoji;
+            div.style.width = (uniRect.width * 0.10) + "px"; div.style.height = (uniRect.width * 0.10) + "px";
+            div.style.left = touch.clientX + "px"; div.style.top = touch.clientY + "px"; div.style.position = 'fixed';
+            document.body.appendChild(div); activeElement = div; isDragging = true; isSpawning = true; startX = touch.clientX; startY = touch.clientY;
         }
 
-        document.addEventListener("mousedown", startDragging);
-        document.addEventListener("touchstart", startDragging, { passive: false });
-        document.addEventListener("mousemove", moveDragging);
-        document.addEventListener("touchmove", moveDragging, { passive: false });
-        document.addEventListener("mouseup", endDragging);
-        document.addEventListener("touchend", endDragging);
+        document.addEventListener("mousedown", startDragging); document.addEventListener("touchstart", startDragging, { passive: false });
+        document.addEventListener("mousemove", moveDragging); document.addEventListener("touchmove", moveDragging, { passive: false });
+        document.addEventListener("mouseup", endDragging); document.addEventListener("touchend", endDragging);
 
         function getContrastYIQ(hexcolor){
             if (!hexcolor) return 'black';
@@ -517,9 +521,8 @@
             const rect = icon.getBoundingClientRect(), cr = universe.getBoundingClientRect();
             const x = (rect.left + rect.width / 2) - (cr.left + cr.width / 2), y = (rect.top + rect.height / 2) - (cr.top + cr.height / 2);
             let angle = (Math.atan2(y, x) * (180 / Math.PI) + 360 + 90) % 360;
-            const dayColor = getComputedStyle(document.documentElement).getPropertyValue('--day-color').trim();
-            const nightColor = getComputedStyle(document.documentElement).getPropertyValue('--night-color').trim();
-            const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+            const dayColor = getComputedStyle(document.documentElement).getPropertyValue('--day-color').trim(), nightColor = getComputedStyle(document.documentElement).getPropertyValue('--night-color').trim(), themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+            icon.style.borderWidth = '1px';
             if (Math.sqrt(x*x + y*y) < cr.width / 2) icon.style.borderColor = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(dayColor) : getContrastYIQ(nightColor);
             else icon.style.borderColor = getContrastYIQ(themeColor);
         }
@@ -527,54 +530,39 @@
         function isAngleBetween(t, s, e) { s = (s % 360 + 360) % 360; e = (e % 360 + 360) % 360; t = (t % 360 + 360) % 360; return s <= e ? (t >= s && t <= e) : (t >= s || t <= e); }
 
         function updateColors() {
-            const root = document.documentElement;
-            const bg = getComputedStyle(root).getPropertyValue('--theme-color').trim(), day = getComputedStyle(root).getPropertyValue('--day-color').trim(), night = getComputedStyle(root).getPropertyValue('--night-color').trim(), iconBg = getComputedStyle(root).getPropertyValue('--icon-bg').trim();
+            const root = document.documentElement, bg = getComputedStyle(root).getPropertyValue('--theme-color').trim(), day = getComputedStyle(root).getPropertyValue('--day-color').trim(), night = getComputedStyle(root).getPropertyValue('--night-color').trim(), iconBg = getComputedStyle(root).getPropertyValue('--icon-bg').trim();
             const bgContrast = getContrastYIQ(bg);
-            root.style.setProperty('--celestial-contrast', bgContrast);
-            root.style.setProperty('--text-contrast', getContrastYIQ(iconBg));
+            root.style.setProperty('--celestial-contrast', bgContrast); root.style.setProperty('--text-contrast', getContrastYIQ(iconBg));
             root.style.setProperty('--menu-bg', bgContrast === 'black' ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.2)');
             document.querySelectorAll('.hour-tick').forEach(tick => {
                 const angle = parseFloat(tick.getAttribute('data-angle'));
                 const color = isAngleBetween(angle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(day) : getContrastYIQ(night);
                 tick.querySelector('.tick-mark').style.backgroundColor = color; if(tick.querySelector('.hour-number')) tick.querySelector('.hour-number').style.color = color;
             });
-            document.querySelectorAll('.dropped-icon').forEach(updateIconBorder);
-            updateHourHand();
+            document.querySelectorAll('.dropped-icon').forEach(updateIconBorder); updateHourHand();
         }
 
         function updateHourHand() {
-            const now = new Date();
-            const currentHour = now.getHours() + now.getMinutes() / 60;
-            const hourAngle = ((currentHour - 12) * 15) + globalSolarOffset;
-            const normalizedAngle = (hourAngle % 360 + 360) % 360;
-            const hand = document.getElementById('hour-hand');
-            
-            const dayColor = getComputedStyle(document.documentElement).getPropertyValue('--day-color').trim();
-            const nightColor = getComputedStyle(document.documentElement).getPropertyValue('--night-color').trim();
-            
+            const now = new Date(), currentHour = now.getHours() + now.getMinutes() / 60;
+            const hourAngle = ((currentHour - 12) * 15) + globalSolarOffset, normalizedAngle = (hourAngle % 360 + 360) % 360;
+            const hand = document.getElementById('hour-hand'), dayColor = getComputedStyle(document.documentElement).getPropertyValue('--day-color').trim(), nightColor = getComputedStyle(document.documentElement).getPropertyValue('--night-color').trim();
             const handContrast = isAngleBetween(normalizedAngle, currentSunriseAngle, currentSunsetAngle) ? getContrastYIQ(dayColor) : getContrastYIQ(nightColor);
-            
-            document.documentElement.style.setProperty('--hand-color', handContrast);
-            hand.style.transform = `translateX(-50%) rotate(${hourAngle + 180}deg)`;
+            document.documentElement.style.setProperty('--hand-color', handContrast); hand.style.transform = `translateX(-50%) rotate(${hourAngle + 180}deg)`;
         }
 
         function drawClock(offset = 0) {
-            globalSolarOffset = offset;
-            const container = document.getElementById("ticks-container");
-            container.innerHTML = ''; 
+            globalSolarOffset = offset; const container = document.getElementById("ticks-container"); container.innerHTML = '';
             for (let i = 0; i < 24; i++) {
                 const angle = ((i-12)*15)+offset, wrapper = document.createElement('div');
                 wrapper.className = 'hour-tick'; wrapper.setAttribute('data-angle', (angle % 360 + 360) % 360);
                 if (i % 6 === 0) { const num = document.createElement('div'); num.className = 'hour-number'; num.innerText = i === 0 ? "24" : (i < 10 ? "0"+i : i); num.style.transform = `translateX(-50%) rotate(${-angle}deg)`; wrapper.appendChild(num); }
-                const mark = document.createElement('div');
-                mark.className = 'tick-mark'; wrapper.appendChild(mark); wrapper.style.transform = `translateX(-50%) rotate(${angle}deg)`; container.appendChild(wrapper);
+                const mark = document.createElement('div'); mark.className = 'tick-mark'; wrapper.appendChild(mark); wrapper.style.transform = `translateX(-50%) rotate(${angle}deg)`; container.appendChild(wrapper);
             }
             updateColors();
         }
 
         function processSolarData(data) {
-            const noon = new Date(data.results.solar_noon);
-            const offset = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
+            const noon = new Date(data.results.solar_noon), offset = (12 - (noon.getHours() + noon.getMinutes() / 60)) * 15;
             const sunRise = new Date(data.results.sunrise), sunSet = new Date(data.results.sunset);
             currentSunriseAngle = (sunRise.getHours() + sunRise.getMinutes()/60 - 12) * 15 + offset;
             currentSunsetAngle = (sunSet.getHours() + sunSet.getMinutes()/60 - 12) * 15 + offset;
@@ -582,34 +570,23 @@
             const polarToCartesian = (a) => ({ x: 50 + 50 * Math.cos((a - 90) * Math.PI / 180), y: 50 + 50 * Math.sin((a - 90) * Math.PI / 180) });
             const start = polarToCartesian(currentSunriseAngle), end = polarToCartesian(currentSunsetAngle);
             document.getElementById("day-path").setAttribute("d", `M 50 50 L ${start.x} ${start.y} A 50 50 0 ${((currentSunsetAngle - currentSunriseAngle + 360) % 360 <= 180 ? "0" : "1")} 1 ${end.x} ${end.y} Z`);
-            updateColors();
-            document.getElementById('location-popup').style.display = 'none';
+            updateColors(); document.getElementById('location-popup').style.display = 'none';
         }
 
         function getSolarDataByCity() {
-            const city = document.getElementById('manual-city').value;
-            const country = document.getElementById('manual-country').value;
+            const city = document.getElementById('manual-city').value, country = document.getElementById('manual-country').value;
             if (!city) return alert("Voer een stad in.");
             fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city},${country}`)
-            .then(r => r.json())
-            .then(locData => {
-                if (locData.length > 0) {
-                    const lat = locData[0].lat;
-                    const lng = locData[0].lon;
-                    fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`)
-                    .then(r => r.json())
-                    .then(processSolarData);
-                } else { alert("Locatie niet gevonden. Probeer een andere stad."); }
-            })
-            .catch(() => alert("Er is een fout opgetreden bij het zoeken naar de locatie."));
+            .then(r => r.json()).then(locData => {
+                if (locData.length > 0) { const lat = locData[0].lat, lng = locData[0].lon; fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`).then(r => r.json()).then(processSolarData); }
+                else alert("Locatie niet gevonden. Probeer een andere stad.");
+            }).catch(() => alert("Er is een fout opgetreden bij het zoeken naar de locatie."));
         }
 
         function getSolarData() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {
-                    fetch(`https://api.sunrise-sunset.org/json?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&formatted=0`)
-                    .then(r => r.json())
-                    .then(processSolarData)
+                    fetch(`https://api.sunrise-sunset.org/json?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&formatted=0`).then(r => r.json()).then(processSolarData)
                     .catch(() => { drawClock(0); hasLocationError = true; showLocationError(); });
                 }, () => { drawClock(0); hasLocationError = true; showLocationError(); });
             } else { drawClock(0); hasLocationError = true; showLocationError(); }
@@ -640,7 +617,7 @@
                     d.text.forEach(txt => {
                         const span = document.createElement('span'); span.className = 'group-emoji'; span.innerText = txt;
                         span.onclick = (e) => { e.stopPropagation(); handleEmojiRemove(span, group); }; group.appendChild(span);
-                    }); stickersLayer.appendChild(group);
+                    }); stickersLayer.appendChild(group); updateGroupLayout(group);
                 } else { const sticker = createNormalSticker(d.text, d.left, d.top); stickersLayer.appendChild(sticker); }
             });
             getSolarData(); updateMenuDynamics();
@@ -659,19 +636,16 @@
         
         function exportPNG() {
             btns.forEach(b => document.getElementById(b).classList.remove('active'));
-            const menuEl = document.getElementById('draggable-menu');
-            const handEl = document.getElementById('hour-hand');
-            const originalMenuDisplay = menuEl.style.display;
-            const originalHandDisplay = handEl.style.display;
-            menuEl.style.display = 'none';
-            handEl.style.display = 'none';
+            const menuEl = document.getElementById('draggable-menu'), handEl = document.getElementById('hour-hand');
+            const originalMenuDisplay = menuEl.style.display, originalHandDisplay = handEl.style.display;
+            menuEl.style.display = 'none'; handEl.style.display = 'none';
             html2canvas(document.body, { 
-                backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim(), 
-                scale: 2, useCORS: true, allowTaint: true, width: window.innerWidth, height: window.innerHeight 
+                backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim(),
+                scale: 2, useCORS: true, allowTaint: true, logging: false,
+                width: window.innerWidth, height: window.innerHeight 
             })
             .then(canvas => {
-                menuEl.style.display = originalMenuDisplay;
-                handEl.style.display = originalHandDisplay;
+                menuEl.style.display = originalMenuDisplay; handEl.style.display = originalHandDisplay;
                 const link = document.createElement('a'); link.download = 'mijn-hemelplanner.png'; link.href = canvas.toDataURL("image/png"); link.click();
             });
         }
